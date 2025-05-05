@@ -185,7 +185,7 @@ kbb.build(sources=sources, output_file="final_knowledge_base.md")
 - **Onboarding Acceleration**: Create personalized knowledge bases for new employees containing company policies, codebase documentation, and team information.
 
 ---
-## Merge Tree Algorithm
+## 🌲 Merge Tree Algorithm
 
 ![image](https://github.com/user-attachments/assets/421822bc-026a-4dfa-af74-79d0ffbc35b9)
 

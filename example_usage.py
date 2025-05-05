@@ -50,14 +50,22 @@ def main():
         # Process all pages from a sitemap
         # 'sitemap_url': "https://kostadindev.github.io/sitemap.xml",
         
-        # GitHub username for accessing GitHub repositories
-        'github_username': "kostadindev"
+        # GitHub repositories to process (format: username/repo or full URL)
+        'github_repositories': [
+            "https://github.com/kostadindev/Knowledge-Base-Builder",
+            "https://github.com/kostadindev/GONEXT",
+            "https://github.com/kostadindev/GONEXT-ML",
+            "https://github.com/kostadindev/meta-me",
+            "https://github.com/kostadindev/Recursive-QA",
+            "https://github.com/kostadindev/deep-gestures",
+            "https://github.com/kostadindev/emf-ellipse"
+        ]
     }
     
     print("Starting knowledge base creation with the following sources:")
     print(f"- {len(sources['files'])} files/URLs")
     print(f"- Sitemap: {sources.get('sitemap_url', 'None')}")
-    print(f"- GitHub Username: {sources.get('github_username', 'None')}")
+    print(f"- GitHub Repositories: {len(sources.get('github_repositories', []))}")
     print(f"Output will be saved to: knowledge_base.md")
     
     # Create knowledge base builder instance

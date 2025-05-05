@@ -1,7 +1,8 @@
 import asyncio
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Tuple
 import os
 import urllib.parse
+import re
 import time
 from knowledge_base_builder.gemini_client import GeminiClient
 from knowledge_base_builder.llm import LLM
@@ -58,10 +59,10 @@ class KBBuilder:
             sitemap_end_time = time.time()
             print(f"⏱️ Sitemap processing completed in {sitemap_end_time - sitemap_start_time:.2f} seconds")
             
-        github_username = sources.get('github_username', '')
-        if github_username:
+        github_repos = sources.get('github_repositories', [])
+        if github_repos:
             github_start_time = time.time()
-            self.process_github(github_username)
+            self.process_github_repos(github_repos)
             github_end_time = time.time()
             print(f"⏱️ GitHub processing completed in {github_end_time - github_start_time:.2f} seconds")
 
@@ -335,47 +336,125 @@ class KBBuilder:
         except Exception as e:
             print(f"❌ Sitemap load error: {e}")
 
-    def process_github(self, github_username: str = None) -> None:
-        """Process and build knowledge bases from GitHub markdown files."""
-        # Create GitHub processor if username is provided and processor doesn't exist
-        if github_username and not self.github_processor:
-            self.github_processor = GitHubProcessor(
-                username=github_username, 
-                token=self.config.get('GITHUB_API_KEY')
-            )
+    def _parse_github_repo_url(self, repo_url: str) -> Tuple[str, str]:
+        """
+        Parse a GitHub repository URL or username/repo string to extract the username and repo name.
+        
+        Supports formats:
+        - username/repo
+        - https://github.com/username/repo
+        - http://github.com/username/repo
+        - github.com/username/repo
+        
+        Returns a tuple of (username, repo_name)
+        """
+        # Pattern to match GitHub URLs or username/repo format
+        github_pattern = r"(?:https?://)?(?:www\.)?github\.com/([^/]+)/([^/]+)"
+        simple_pattern = r"^([^/]+)/([^/]+)$"
+        
+        # Try to match a full GitHub URL first
+        url_match = re.match(github_pattern, repo_url)
+        if url_match:
+            return url_match.group(1), url_match.group(2)
+        
+        # Try to match the simpler username/repo format
+        simple_match = re.match(simple_pattern, repo_url)
+        if simple_match:
+            return simple_match.group(1), simple_match.group(2)
             
+        # If neither format matches, raise an error
+        raise ValueError(f"Invalid GitHub repository format: {repo_url}. Expected format: username/repo or https://github.com/username/repo")
+    
+    def process_github_repos(self, github_repos: List[str]) -> None:
+        """Process and build knowledge bases from GitHub repositories."""
+        if not github_repos:
+            print("⚠️ GitHub processing skipped - no repositories provided")
+            return
+            
+        # Initialize GitHub processor if not already done
         if not self.github_processor:
+            self.github_processor = GitHubProcessor(token=self.config.get('GITHUB_API_KEY'))
+        
+        for repo in github_repos:
+            try:
+                print(f"📂 Processing GitHub repository: {repo}")
+                repo_start_time = time.time()
+                
+                try:
+                    # Parse repository URL to extract username and repo name
+                    username, repo_name = self._parse_github_repo_url(repo)
+                    
+                    # Get markdown files from the specific repo
+                    md_urls_start = time.time()
+                    md_urls = self.github_processor.get_markdown_urls_for_repo(username, repo_name)
+                    md_urls_end = time.time()
+                    print(f"  ⏱️ Fetching markdown URLs: {md_urls_end - md_urls_start:.2f} seconds")
+                    
+                    if not md_urls:
+                        print(f"  ⚠️ No markdown files found in repository {username}/{repo_name}")
+                        continue
+                        
+                    print(f"  📄 Found {len(md_urls)} markdown files")
+                    
+                    for url in md_urls:
+                        try:
+                            print(f"  📘 GitHub MD: {url}")
+                            url_start = time.time()
+                            
+                            download_start = time.time()
+                            text = self.github_processor.download_markdown(url)
+                            download_end = time.time()
+                            print(f"    ⏱️ Markdown download: {download_end - download_start:.2f} seconds")
+                            
+                            if text.strip():
+                                kb_start = time.time()
+                                self.kbs.append(self.llm.build_kb(text))
+                                kb_end = time.time()
+                                print(f"    ⏱️ KB building: {kb_end - kb_start:.2f} seconds")
+                            
+                            url_end = time.time()
+                            print(f"    ⏱️ Total markdown processing: {url_end - url_start:.2f} seconds")
+                        except Exception as e:
+                            print(f"  ❌ Markdown error: {e}")
+                except ValueError as e:
+                    print(f"  ❌ {str(e)}")
+                
+                repo_end_time = time.time()
+                print(f"  ⏱️ Total repository processing: {repo_end_time - repo_start_time:.2f} seconds")
+            except Exception as e:
+                print(f"❌ GitHub repository error: {e}")
+                
+    # Keep the old process_github method for backward compatibility
+    def process_github(self, github_username: str = None) -> None:
+        """
+        Process and build knowledge bases from GitHub markdown files.
+        
+        Note: This method is deprecated. Use process_github_repos instead.
+        """
+        if not github_username:
             print("⚠️ GitHub processing skipped - no username provided")
             return
             
-        try:
-            github_start = time.time()
-            md_urls = self.github_processor.get_markdown_urls()
-            github_end = time.time()
-            print(f"  ⏱️ GitHub URLs fetching: {github_end - github_start:.2f} seconds")
+        print("⚠️ Warning: process_github is deprecated. Use process_github_repos instead.")
+        
+        # Process the user's repositories in the new way
+        repos = [f"{github_username}/{repo}" for repo in self._get_user_repos(github_username)]
+        self.process_github_repos(repos)
+    
+    def _get_user_repos(self, username: str) -> List[str]:
+        """Get a list of repository names for a user."""
+        # Initialize GitHub processor if needed
+        if not self.github_processor:
+            self.github_processor = GitHubProcessor(
+                username=username, 
+                token=self.config.get('GITHUB_API_KEY')
+            )
             
-            for url in md_urls:
-                try:
-                    print(f"📘 GitHub MD: {url}")
-                    url_start = time.time()
-                    
-                    download_start = time.time()
-                    text = self.github_processor.download_markdown(url)
-                    download_end = time.time()
-                    print(f"  ⏱️ Markdown download: {download_end - download_start:.2f} seconds")
-                    
-                    if text.strip():
-                        kb_start = time.time()
-                        self.kbs.append(self.llm.build_kb(text))
-                        kb_end = time.time()
-                        print(f"  ⏱️ KB building: {kb_end - kb_start:.2f} seconds")
-                    
-                    url_end = time.time()
-                    print(f"  ⏱️ Total GitHub markdown processing: {url_end - url_start:.2f} seconds")
-                except Exception as e:
-                    print(f"❌ GitHub MD error: {e}")
+        try:
+            return self.github_processor.get_user_repos()
         except Exception as e:
-            print(f"❌ GitHub fetch error: {e}")
+            print(f"❌ Error fetching user repositories: {e}")
+            return []
 
     def build_final_kb(self, output_path: str = "final_knowledge_base.md") -> None:
         """Build and save the final knowledge base."""

@@ -1,1 +1,3 @@
-"""Tests for the knowledge base builder package.""" 
+"""
+Test package for the Knowledge Base Builder.
+""" 

@@ -1,0 +1,11 @@
+{
+  "pdf_urls": [
+    "https://arxiv.org/pdf/2312.11805.pdf",
+    "https://arxiv.org/pdf/2402.03216.pdf"
+  ],
+  "web_urls": [
+    "https://ai.google.dev/gemini-api/docs/get-started",
+    "https://ai.google.dev/gemini-api/docs/models/gemini"
+  ],
+  "sitemap_url": "https://ai.google.dev/sitemap.xml"
+} 

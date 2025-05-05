@@ -1,6 +1,8 @@
+import asyncio
 from typing import List, Dict, Any
 import os
 import urllib.parse
+import time
 from knowledge_base_builder.gemini_client import GeminiClient
 from knowledge_base_builder.llm import LLM
 from knowledge_base_builder.pdf_processor import PDFProcessor
@@ -13,79 +15,79 @@ from knowledge_base_builder.github_processor import GitHubProcessor
 class KBBuilder:
     """Main application class for building knowledge bases from various sources."""
     def __init__(self, config: Dict[str, Any]):
-        """Initialize with API keys and model configuration."""
-        # Store only API and model configuration
         self.config = config
-        
-        # Initialize clients
         self.gemini_client = GeminiClient(
             api_key=config['GOOGLE_API_KEY'],
             model=config.get('GEMINI_MODEL', 'gemini-2.0-flash'),
-            temperature=float(config.get('GEMINI_TEMPERATURE', 0.7))
+            temperature=float(config.get('GEMINI_TEMPERATURE', 0.7)),
+            max_retries=int(config.get('GEMINI_MAX_RETRIES', 3)),
+            max_concurrency=int(config.get('GEMINI_MAX_CONCURRENCY', 8)),
         )
-        
-        # Initialize processors
         self.llm = LLM(self.gemini_client)
+        # … same processors as before …
         self.pdf_processor = PDFProcessor()
         self.document_processor = DocumentProcessor()
         self.spreadsheet_processor = SpreadsheetProcessor()
         self.web_content_processor = WebContentProcessor()
         self.website_processor = WebsiteProcessor()
-        
-        # Setup GitHub processor if username is provided
         self.github_username = config.get('GITHUB_USERNAME', '')
-        self.github_api_key = config.get('GITHUB_API_KEY')
-        if self.github_username:
-            self.github_processor = GitHubProcessor(
-                username=self.github_username,
-                token=self.github_api_key
-            )
-        else:
-            self.github_processor = None
-            
-        self.kbs = []
+        self.github_processor = (
+            GitHubProcessor(username=self.github_username, token=config.get('GITHUB_API_KEY'))
+            if self.github_username else None
+        )
+        self.kbs: List[str] = []
 
-    def build_kb(self, sources: Dict[str, Any] = None, output_file: str = "final_knowledge_base.md") -> None:
-        """Run the complete knowledge base building pipeline with provided sources and output file.
-        
-        Args:
-            sources: Dictionary containing source configurations (files, sitemap_url)
-            output_file: Path to the output knowledge base file
-        """
+    def build_kb(self, sources: Dict[str, Any] = None, output_file: str = "final_knowledge_base.md") -> str:
+        """Synchronously run the pipeline up to merge, then dispatch async merge."""
+        total_start_time = time.time()
         print("🚀 Starting Knowledge Base Builder pipeline...")
-        
-        # Clear any previous knowledge bases
         self.kbs = []
-        
-        # Use empty dict if no sources provided
         sources = sources or {}
-        
-        # Process all files (unified approach)
-        files = sources.get('files', [])
-        if files:
-            print(f"📂 Processing {len(files)} files/URLs...")
+
+        # process all your legacy or unified sources exactly as before...
+        if files := sources.get('files', []):
+            files_start_time = time.time()
             self.process_files(files)
-        
-        # For backward compatibility
+            files_end_time = time.time()
+            print(f"⏱️ Files processing completed in {files_end_time - files_start_time:.2f} seconds")
+            
+        legacy_start_time = time.time()
         self._process_legacy_sources(sources)
+        legacy_end_time = time.time()
+        print(f"⏱️ Legacy sources processing completed in {legacy_end_time - legacy_start_time:.2f} seconds")
         
-        # Process websites from sitemap
-        sitemap_url = sources.get('sitemap_url')
-        if sitemap_url:
-            print(f"🔍 Processing sitemap: {sitemap_url}")
-            self.process_websites(sitemap_url)
-        
-        # Process GitHub repositories if username is provided
+        if sitemap := sources.get('sitemap_url'):
+            sitemap_start_time = time.time()
+            self.process_websites(sitemap)
+            sitemap_end_time = time.time()
+            print(f"⏱️ Sitemap processing completed in {sitemap_end_time - sitemap_start_time:.2f} seconds")
+            
         if self.github_username:
-            print(f"📦 Processing GitHub repositories for user: {self.github_username}")
+            github_start_time = time.time()
             self.process_github()
-        
-        # Build the final knowledge base
-        self.build_final_kb(output_file)
-        
-        print("✅ Knowledge Base Builder pipeline completed successfully!")
+            github_end_time = time.time()
+            print(f"⏱️ GitHub processing completed in {github_end_time - github_start_time:.2f} seconds")
+
+        # now do async merge & write file
+        print("🔀 Merging all knowledge bases asynchronously...")
+        merge_start_time = time.time()
+        final_kb = asyncio.get_event_loop().run_until_complete(
+            self.llm.recursively_merge_kbs(self.kbs)
+        )
+        merge_end_time = time.time()
+        print(f"⏱️ Knowledge base merging completed in {merge_end_time - merge_start_time:.2f} seconds")
+
+        write_start_time = time.time()
+        with open(output_file, "w", encoding="utf-8") as f:
+            f.write(final_kb)
+        write_end_time = time.time()
+        print(f"⏱️ File writing completed in {write_end_time - write_start_time:.2f} seconds")
+
+        total_end_time = time.time()
+        print(f"✅ Final KB written to: {output_file}")
+        print(f"⏱️ Total processing time: {total_end_time - total_start_time:.2f} seconds")
         return output_file
-    
+
     def _process_legacy_sources(self, sources: Dict[str, Any]) -> None:
         """Process legacy source format for backward compatibility."""
         # Process PDFs
@@ -150,41 +152,117 @@ class KBBuilder:
     def _process_pdf(self, url: str) -> None:
         """Process a PDF file."""
         print(f"📄 PDF: {url}")
+        start_time = time.time()
+        
+        download_start = time.time()
         path = self.pdf_processor.download(url)
+        download_end = time.time()
+        print(f"  ⏱️ Download: {download_end - download_start:.2f} seconds")
+        
+        extract_start = time.time()
         text = self.pdf_processor.extract_text(path)
+        extract_end = time.time()
+        print(f"  ⏱️ Text extraction: {extract_end - extract_start:.2f} seconds")
+        
         if text.strip():
+            kb_start = time.time()
             self.kbs.append(self.llm.build_kb(text))
+            kb_end = time.time()
+            print(f"  ⏱️ KB building: {kb_end - kb_start:.2f} seconds")
+        
+        end_time = time.time()
+        print(f"  ⏱️ Total PDF processing: {end_time - start_time:.2f} seconds")
 
     def _process_document(self, url: str) -> None:
         """Process a document file."""
         print(f"📝 Document: {url}")
+        start_time = time.time()
+        
+        download_start = time.time()
         path = self.document_processor.download(url)
+        download_end = time.time()
+        print(f"  ⏱️ Download: {download_end - download_start:.2f} seconds")
+        
+        extract_start = time.time()
         text = self.document_processor.extract_text(path)
+        extract_end = time.time()
+        print(f"  ⏱️ Text extraction: {extract_end - extract_start:.2f} seconds")
+        
         if text.strip():
+            kb_start = time.time()
             self.kbs.append(self.llm.build_kb(text))
+            kb_end = time.time()
+            print(f"  ⏱️ KB building: {kb_end - kb_start:.2f} seconds")
+        
+        end_time = time.time()
+        print(f"  ⏱️ Total document processing: {end_time - start_time:.2f} seconds")
 
     def _process_spreadsheet(self, url: str) -> None:
         """Process a spreadsheet file."""
         print(f"📊 Spreadsheet: {url}")
+        start_time = time.time()
+        
+        download_start = time.time()
         path = self.spreadsheet_processor.download(url)
+        download_end = time.time()
+        print(f"  ⏱️ Download: {download_end - download_start:.2f} seconds")
+        
+        extract_start = time.time()
         text = self.spreadsheet_processor.extract_text(path)
+        extract_end = time.time()
+        print(f"  ⏱️ Text extraction: {extract_end - extract_start:.2f} seconds")
+        
         if text.strip():
+            kb_start = time.time()
             self.kbs.append(self.llm.build_kb(text))
+            kb_end = time.time()
+            print(f"  ⏱️ KB building: {kb_end - kb_start:.2f} seconds")
+        
+        end_time = time.time()
+        print(f"  ⏱️ Total spreadsheet processing: {end_time - start_time:.2f} seconds")
 
     def _process_web_content(self, url: str) -> None:
         """Process a web content file."""
         print(f"🌐 Web content: {url}")
+        start_time = time.time()
+        
+        download_start = time.time()
         path = self.web_content_processor.download(url)
+        download_end = time.time()
+        print(f"  ⏱️ Download: {download_end - download_start:.2f} seconds")
+        
+        extract_start = time.time()
         text = self.web_content_processor.extract_text(path)
+        extract_end = time.time()
+        print(f"  ⏱️ Text extraction: {extract_end - extract_start:.2f} seconds")
+        
         if text.strip():
+            kb_start = time.time()
             self.kbs.append(self.llm.build_kb(text))
+            kb_end = time.time()
+            print(f"  ⏱️ KB building: {kb_end - kb_start:.2f} seconds")
+        
+        end_time = time.time()
+        print(f"  ⏱️ Total web content processing: {end_time - start_time:.2f} seconds")
 
     def _process_web_url(self, url: str) -> None:
         """Process a web URL."""
         print(f"🔗 Website: {url}")
+        start_time = time.time()
+        
+        download_start = time.time()
         text = self.website_processor.download_and_clean_html(url)
+        download_end = time.time()
+        print(f"  ⏱️ Download and clean: {download_end - download_start:.2f} seconds")
+        
         if text.strip():
+            kb_start = time.time()
             self.kbs.append(self.llm.build_kb(text))
+            kb_end = time.time()
+            print(f"  ⏱️ KB building: {kb_end - kb_start:.2f} seconds")
+        
+        end_time = time.time()
+        print(f"  ⏱️ Total website processing: {end_time - start_time:.2f} seconds")
 
     def process_pdfs(self, pdf_urls: List[str]) -> None:
         """Process and build knowledge bases from PDFs."""
@@ -230,7 +308,11 @@ class KBBuilder:
         """Process and build knowledge bases from websites."""
         try:
             print(f"🌐 Sitemap: {sitemap_url}")
+            sitemap_start = time.time()
             urls = self.website_processor.get_urls_from_sitemap(sitemap_url)
+            sitemap_end = time.time()
+            print(f"  ⏱️ Sitemap fetching: {sitemap_end - sitemap_start:.2f} seconds")
+            
             for url in urls:
                 try:
                     self._process_web_url(url)
@@ -246,13 +328,29 @@ class KBBuilder:
             return
             
         try:
+            github_start = time.time()
             md_urls = self.github_processor.get_markdown_urls()
+            github_end = time.time()
+            print(f"  ⏱️ GitHub URLs fetching: {github_end - github_start:.2f} seconds")
+            
             for url in md_urls:
                 try:
                     print(f"📘 GitHub MD: {url}")
+                    url_start = time.time()
+                    
+                    download_start = time.time()
                     text = self.github_processor.download_markdown(url)
+                    download_end = time.time()
+                    print(f"  ⏱️ Markdown download: {download_end - download_start:.2f} seconds")
+                    
                     if text.strip():
+                        kb_start = time.time()
                         self.kbs.append(self.llm.build_kb(text))
+                        kb_end = time.time()
+                        print(f"  ⏱️ KB building: {kb_end - kb_start:.2f} seconds")
+                    
+                    url_end = time.time()
+                    print(f"  ⏱️ Total GitHub markdown processing: {url_end - url_start:.2f} seconds")
                 except Exception as e:
                     print(f"❌ GitHub MD error: {e}")
         except Exception as e:
@@ -265,9 +363,15 @@ class KBBuilder:
             return
 
         print("🔀 Merging all knowledge bases...")
+        merge_start = time.time()
         final_kb = self.llm.recursively_merge_kbs(self.kbs)
+        merge_end = time.time()
+        print(f"⏱️ Merging completed in {merge_end - merge_start:.2f} seconds")
 
+        write_start = time.time()
         with open(output_path, "w", encoding="utf-8") as f:
             f.write(final_kb)
+        write_end = time.time()
+        print(f"⏱️ File writing completed in {write_end - write_start:.2f} seconds")
 
         print(f"✅ Final KB written to: {output_path}") 

@@ -18,7 +18,6 @@ def main():
     # API and model configuration
     config = {
         'GOOGLE_API_KEY': os.getenv("GOOGLE_API_KEY"),
-        'GITHUB_USERNAME': os.getenv("GITHUB_USERNAME", ""),
         'GITHUB_API_KEY': os.getenv("GITHUB_API_KEY"),
     }
     
@@ -49,12 +48,16 @@ def main():
         ],
         
         # Process all pages from a sitemap
-        # 'sitemap_url': "https://kostadindev.github.io/sitemap.xml"
+        # 'sitemap_url': "https://kostadindev.github.io/sitemap.xml",
+        
+        # GitHub username for accessing GitHub repositories
+        'github_username': "kostadindev"
     }
     
     print("Starting knowledge base creation with the following sources:")
     print(f"- {len(sources['files'])} files/URLs")
     print(f"- Sitemap: {sources.get('sitemap_url', 'None')}")
+    print(f"- GitHub Username: {sources.get('github_username', 'None')}")
     print(f"Output will be saved to: knowledge_base.md")
     
     # Create knowledge base builder instance

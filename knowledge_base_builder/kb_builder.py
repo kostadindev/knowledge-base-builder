@@ -30,11 +30,7 @@ class KBBuilder:
         self.spreadsheet_processor = SpreadsheetProcessor()
         self.web_content_processor = WebContentProcessor()
         self.website_processor = WebsiteProcessor()
-        self.github_username = config.get('GITHUB_USERNAME', '')
-        self.github_processor = (
-            GitHubProcessor(username=self.github_username, token=config.get('GITHUB_API_KEY'))
-            if self.github_username else None
-        )
+        self.github_processor = None
         self.kbs: List[str] = []
 
     def build_kb(self, sources: Dict[str, Any] = None, output_file: str = "final_knowledge_base.md") -> str:
@@ -62,9 +58,10 @@ class KBBuilder:
             sitemap_end_time = time.time()
             print(f"⏱️ Sitemap processing completed in {sitemap_end_time - sitemap_start_time:.2f} seconds")
             
-        if self.github_username:
+        github_username = sources.get('github_username', '')
+        if github_username:
             github_start_time = time.time()
-            self.process_github()
+            self.process_github(github_username)
             github_end_time = time.time()
             print(f"⏱️ GitHub processing completed in {github_end_time - github_start_time:.2f} seconds")
 
@@ -338,8 +335,15 @@ class KBBuilder:
         except Exception as e:
             print(f"❌ Sitemap load error: {e}")
 
-    def process_github(self) -> None:
+    def process_github(self, github_username: str = None) -> None:
         """Process and build knowledge bases from GitHub markdown files."""
+        # Create GitHub processor if username is provided and processor doesn't exist
+        if github_username and not self.github_processor:
+            self.github_processor = GitHubProcessor(
+                username=github_username, 
+                token=self.config.get('GITHUB_API_KEY')
+            )
+            
         if not self.github_processor:
             print("⚠️ GitHub processing skipped - no username provided")
             return

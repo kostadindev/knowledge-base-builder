@@ -23,11 +23,16 @@ class DocumentProcessor:
             if os.name == 'nt':  # Windows
                 # For Windows paths with drive letters (like C:/)
                 if local_path.startswith('/') and len(local_path) > 1:
-                    # Remove the leading slash before the drive letter
-                    if local_path[1].isalpha() and local_path[2] == ':':
+                    # Windows paths might have multiple leading slashes - remove them all before the drive letter
+                    while local_path.startswith('/') and len(local_path) > 2 and local_path[1:3] != ':/':
                         local_path = local_path[1:]
-                    else:
-                        local_path = local_path.lstrip('/')
+                    
+                    # Now handle the format /C:/path/to/file.pdf -> C:/path/to/file.pdf
+                    if len(local_path) > 2 and local_path[1].isalpha() and local_path[2] == ':':
+                        local_path = local_path[1:]
+                
+                # Ensure proper slash direction for Windows
+                local_path = local_path.replace('/', '\\')
             else:  # Mac/Linux - ensure path starts with /
                 if not local_path.startswith('/'):
                     local_path = '/' + local_path

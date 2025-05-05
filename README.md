@@ -6,11 +6,13 @@ This project builds a **textual knowledge base** from various data sources such 
 
 ## ✨ Features
 
-- 📄 **PDF ingestion** – Downloads local or remote PDFs and extracts structured text.
+- 📄 **Document ingestion** – Downloads local or remote documents and extracts structured text.
 - 🌐 **Website ingestion** – Crawls pages from a sitemap or list of pages and extracts clean HTML content.
 - 📘 **GitHub integration**  – Fetches Markdown files from public repositories.
 - 🧠 **LLM-powered summarization** – Uses Gemini to convert raw data into readable, structured Markdown.
 - 🔁 **Recursive merging** – Combines multiple knowledge base sections into a single cohesive document.
+
+-⚡ **Performance** – Load files in parallel and make multiple asynchronous calls to LLMs to summarize documents.
 
 ---
 
@@ -65,9 +67,9 @@ sources = {
     'files': [
         # All file types are now supported through a single list
         "https://example.com/document.pdf",
-        "file:///path/to/local/document.pdf",
+        "/path/to/local/document.pdf",
         "https://example.com/data.csv",
-        "file:///path/to/local/document.docx",
+        "/path/to/local/document.docx",
         "https://example.com/page1.html",
         "https://example.com/data.json",
         "https://example.com/"  # Regular web pages are also supported
@@ -80,42 +82,6 @@ kbb = KBBuilder(config)
 
 # Build knowledge base
 kbb.build_kb(sources=sources, output_file="final_knowledge_base.md")
-```
-
-Example `sources.json` file:
-```json
-{
-  "files": [
-    "https://example.com/document.pdf",
-    "file:///path/to/local/document.docx",
-    "https://example.com/data.xlsx", 
-    "https://example.com/api-docs.json",
-    "https://example.com/page1.html"
-  ],
-  "sitemap_url": "https://example.com/sitemap.xml"
-}
-```
-
-> **Note**: The legacy format with separate lists (`pdf_urls`, `web_urls`, etc.) is still supported for backward compatibility, but the new unified `files` approach is recommended.
-
----
-
-
-### File Structure:
-
-```
-.
-├── construct_kb.py         # Main script
-├── gemini_client.py        # Gemini API client
-├── kb_app.py               # Main application class
-├── llm.py           # Knowledge base building utility
-├── pdf_processor.py        # PDF processing utility
-├── website_processor.py    # Website processing utility
-├── github_processor.py     # GitHub processing utility
-├── __init__.py             # Package initialization
-├── requirements.txt        # Python dependencies
-├── .env                    # Environment variables
-└── test_llm.py      # Test script
 ```
 
 ---
@@ -146,7 +112,7 @@ Example `sources.json` file:
 ### Basic Usage
 Run the main script to process all configured sources:
 ```bash
-python -m knowledge_base_builder.cli --file "https://example.com/document.pdf" --file "file:///path/to/document.docx" --output kb.md
+python -m knowledge_base_builder.cli --file "https://example.com/document.pdf" --file "/path/to/document.docx" --output kb.md
 ```
 
 Or use a sources file:
@@ -180,10 +146,6 @@ python -m knowledge_base_builder.cli --sources-file sources.json --output kb.md
 ---
 
 ## 🧪 TODOs & Enhancements
-
-- [x] Add support for other document types (.docx, .txt, .md, .rtf)
-- [x] Add support for spreadsheet data (.csv, .tsv, .xlsx, .ods) 
-- [x] Add support for web content formats (.html, .xml, .json, .yaml)
 - [ ] Add support for other data sources (Google Drive, LinkedIn)
 - [ ] Add support for other large language models (GPT4o, Claude 3.7)
 - [ ] Support knowledge base to vector DB (e.g., Pinecone, Chroma)

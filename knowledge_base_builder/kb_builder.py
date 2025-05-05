@@ -124,6 +124,23 @@ class KBBuilder:
         """Process files and URLs automatically based on their type."""
         for url in files:
             try:
+                # Check if this is a local file path (not starting with http/https and containing a path separator)
+                if not url.startswith(('http://', 'https://', 'file://')) and (os.path.sep in url or os.path.exists(url)):
+                    # Convert local path to file:// URL format for internal processing
+                    local_path = os.path.abspath(url)
+                    
+                    # Handle Windows paths differently
+                    if os.name == 'nt':  # Windows
+                        # For Windows, ensure path starts with / and replace backslashes with forward slashes
+                        local_path = local_path.replace('\\', '/')
+                        if local_path[1] == ':':  # Has drive letter like C:
+                            url = f"file:///{local_path}"
+                        else:
+                            url = f"file:///{local_path}"
+                    else:
+                        # For Unix-like systems
+                        url = f"file://{urllib.parse.quote(local_path)}"
+                    
                 # Determine if this is a web URL or file path
                 if url.startswith(('http://', 'https://')) and not any(url.lower().endswith(ext) for ext in 
                                                                    ['.pdf', '.docx', '.txt', '.md', '.rtf', 

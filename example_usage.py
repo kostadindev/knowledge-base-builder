@@ -32,10 +32,11 @@ def main():
     sources = {
         # Unified files list - automatically detects and processes each file type
         'files': [
-            # PDF documents
+            # PDF documents - remote
             "https://kostadindev.github.io/static/documents/cv.pdf",
             "https://kostadindev.github.io/static/documents/sbu_transcript.pdf",
-            "file:///C:/Users/kosta/OneDrive/Desktop/MS%20Application%20Materials/emf-ellipse-publication.pdf",
+            # Local file path (no need for file:/// prefix)
+            "C:/Users/kosta/OneDrive/Desktop/MS Application Materials/emf-ellipse-publication.pdf",
             
             # Web pages
             "https://kostadindev.github.io/index.html",
@@ -43,30 +44,27 @@ def main():
             
             # Add other file types as needed
             # "https://example.com/data.csv",
-            # "file:///path/to/document.docx",
+            # "path/to/local/document.docx",  # Relative local path example
             # "https://example.com/api-docs.json",
         ],
         
         # Process all pages from a sitemap
-        'sitemap_url': "https://kostadindev.github.io/sitemap.xml"
+        # 'sitemap_url': "https://kostadindev.github.io/sitemap.xml"
     }
-    
-    # Output file path
-    output_file = "knowledge_base.md"
     
     print("Starting knowledge base creation with the following sources:")
     print(f"- {len(sources['files'])} files/URLs")
-    print(f"- Sitemap: {sources['sitemap_url']}")
-    print(f"Output will be saved to: {output_file}")
+    print(f"- Sitemap: {sources.get('sitemap_url', 'None')}")
+    print(f"Output will be saved to: knowledge_base.md")
     
     # Create knowledge base builder instance
     kbb = KBBuilder(config)
     
     # Build the knowledge base
-    kbb.build_kb(sources=sources, output_file=output_file)
+    kbb.build_kb(sources=sources, output_file="knowledge_base.md")
     
     print(f"\nKnowledge base creation complete!")
-    print(f"The knowledge base has been saved to: {output_file}")
+    print(f"The knowledge base has been saved to: knowledge_base.md")
     print("You can now use this file in your RAG pipelines or LLM applications.")
 
 if __name__ == "__main__":

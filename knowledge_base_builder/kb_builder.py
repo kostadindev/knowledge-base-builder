@@ -4,7 +4,10 @@ import os
 import urllib.parse
 import re
 import time
+from knowledge_base_builder.llm_client import LLMClient
 from knowledge_base_builder.gemini_client import GeminiClient
+from knowledge_base_builder.openai_client import OpenAIClient
+from knowledge_base_builder.anthropic_client import AnthropicClient
 from knowledge_base_builder.llm import LLM
 from knowledge_base_builder.pdf_processor import PDFProcessor
 from knowledge_base_builder.document_processor import DocumentProcessor
@@ -17,15 +20,40 @@ class KBBuilder:
     """Main application class for building knowledge bases from various sources."""
     def __init__(self, config: Dict[str, Any]):
         self.config = config
-        self.gemini_client = GeminiClient(
-            api_key=config['GOOGLE_API_KEY'],
-            model=config.get('GEMINI_MODEL', 'gemini-2.0-flash'),
-            temperature=float(config.get('GEMINI_TEMPERATURE', 0.7)),
-            max_retries=int(config.get('GEMINI_MAX_RETRIES', 3)),
-            max_concurrency=int(config.get('GEMINI_MAX_CONCURRENCY', 8)),
-        )
-        self.llm = LLM(self.gemini_client)
-        # … same processors as before …
+        
+        # Initialize the appropriate LLM client based on config
+        llm_provider = config.get('LLM_PROVIDER', 'gemini').lower()
+        
+        if llm_provider == 'gemini':
+            self.llm_client = GeminiClient(
+                api_key=config['GOOGLE_API_KEY'],
+                model=config.get('GEMINI_MODEL', 'gemini-2.0-flash'),
+                temperature=float(config.get('GEMINI_TEMPERATURE', 0.7)),
+                max_retries=int(config.get('GEMINI_MAX_RETRIES', 3)),
+                max_concurrency=int(config.get('GEMINI_MAX_CONCURRENCY', 8)),
+            )
+        elif llm_provider == 'openai':
+            self.llm_client = OpenAIClient(
+                api_key=config['OPENAI_API_KEY'],
+                model=config.get('OPENAI_MODEL', 'gpt-4o'),
+                temperature=float(config.get('OPENAI_TEMPERATURE', 0.7)),
+                max_retries=int(config.get('OPENAI_MAX_RETRIES', 3)),
+                max_concurrency=int(config.get('OPENAI_MAX_CONCURRENCY', 8)),
+            )
+        elif llm_provider == 'anthropic':
+            self.llm_client = AnthropicClient(
+                api_key=config['ANTHROPIC_API_KEY'],
+                model=config.get('ANTHROPIC_MODEL', 'claude-3-7-sonnet'),
+                temperature=float(config.get('ANTHROPIC_TEMPERATURE', 0.7)),
+                max_retries=int(config.get('ANTHROPIC_MAX_RETRIES', 3)),
+                max_concurrency=int(config.get('ANTHROPIC_MAX_CONCURRENCY', 8)),
+            )
+        else:
+            raise ValueError(f"Unsupported LLM provider: {llm_provider}. Must be one of: gemini, openai, anthropic")
+            
+        self.llm = LLM(self.llm_client)
+        
+        # Initialize processors
         self.pdf_processor = PDFProcessor()
         self.document_processor = DocumentProcessor()
         self.spreadsheet_processor = SpreadsheetProcessor()
@@ -464,7 +492,9 @@ class KBBuilder:
 
         print("🔀 Merging all knowledge bases...")
         merge_start = time.time()
-        final_kb = self.llm.recursively_merge_kbs(self.kbs)
+        final_kb = asyncio.get_event_loop().run_until_complete(
+            self.llm.recursively_merge_kbs(self.kbs)
+        )
         merge_end = time.time()
         print(f"⏱️ Merging completed in {merge_end - merge_start:.2f} seconds")
 

@@ -1,6 +1,6 @@
 # 🧠 Multi-Source Knowledge Base Builder for LLMs
 
-This project builds a **textual knowledge base** from various data sources such as PDFs, websites, and GitHub markdown files, using **Google Gemini models** to structure and summarize the content. The final output is a **Markdown-formatted knowledge base**, ready for use in **RAG pipelines**, chatbots, or any LLM application.
+This project builds a **textual knowledge base** from various data sources such as PDFs, websites, and GitHub markdown files, using **AI models** to structure and summarize the content. Supports **Google Gemini**, **OpenAI GPT-4o**, and **Anthropic Claude**. The final output is a **Markdown-formatted knowledge base**, ready for use in **RAG pipelines**, chatbots, or any LLM application.
 
 ---
 
@@ -9,10 +9,10 @@ This project builds a **textual knowledge base** from various data sources such 
 - 📄 **Document ingestion** – Downloads local or remote documents and extracts structured text.
 - 🌐 **Website ingestion** – Crawls pages from a sitemap or list of pages and extracts clean HTML content.
 - 📘 **GitHub integration**  – Fetches Markdown files from public repositories.
-- 🧠 **LLM-powered summarization** – Uses Gemini to convert raw data into readable, structured Markdown.
+- 🧠 **LLM-powered summarization** – Uses state-of-the-art models to convert raw data into readable, structured Markdown.
 - 🔁 **Recursive merging** – Combines multiple knowledge base sections into a single cohesive document.
-
--⚡ **Performance** – Load files in parallel and make multiple asynchronous calls to LLMs to summarize documents.
+- 🔄 **Multiple model providers** – Choose between Google Gemini, OpenAI GPT-4o, or Anthropic Claude 3.7 Sonnet.
+- ⚡ **Performance** – Load files in parallel and make multiple asynchronous calls to LLMs to summarize documents.
 
 ---
 
@@ -38,13 +38,23 @@ pip install -e .
 
 ### 1. Set up your `.env` file
 
-Create a `.env` file in your project directory with the following variables:
+Create a `.env` file in your project directory with the following variables (add the API keys for the models you intend to use):
 
 ```env
-GOOGLE_API_KEY=your_google_api_key # Required
+# Choose your LLM provider (gemini, openai, or anthropic)
+LLM_PROVIDER=gemini
 
-GITHUB_USERNAME=your_github_username # Optional if you want to include Github repositories as file sources.
-GITHUB_API_KEY=your_github_token  # Optional (only required for accounts with a large number of repositories 50+)
+# Google Gemini API Key
+GOOGLE_API_KEY=your_google_api_key # Obtain at https://ai.google.dev/gemini-api/docs/api-key
+
+# OpenAI API Key
+OPENAI_API_KEY=your_openai_api_key # Obtain at https://platform.openai.com/api-keys
+
+# Anthropic API Key
+ANTHROPIC_API_KEY=your_anthropic_api_key # Obtain at https://console.anthropic.com/keys
+
+# GitHub API Key (optional)
+GITHUB_API_KEY=your_github_token  # Only required for accounts with many repositories
 ```
 
 ### 2. Use as a Python Package
@@ -59,13 +69,16 @@ load_dotenv()
 
 # API and model configuration
 config = {
-    'GOOGLE_API_KEY': os.getenv("GOOGLE_API_KEY"),
+    'LLM_PROVIDER': 'gemini',  # Choose: 'gemini', 'openai', or 'anthropic'
+    'GOOGLE_API_KEY': os.getenv("GOOGLE_API_KEY"),     # For Gemini
+    'OPENAI_API_KEY': os.getenv("OPENAI_API_KEY"),     # For GPT-4o
+    'ANTHROPIC_API_KEY': os.getenv("ANTHROPIC_API_KEY"), # For Claude
 }
 
-# Source documents - NEW unified approach
+# Source documents - unified approach
 sources = {
     'files': [
-        # All file types are now supported through a single list
+        # All file types are supported through a single list
         "https://example.com/document.pdf",
         "/path/to/local/document.pdf",
         "https://example.com/data.csv",
@@ -100,24 +113,30 @@ kbb.build_kb(sources=sources, output_file="final_knowledge_base.md")
 
 ---
 
-## 🧠 Gemini Prompt Strategy
+## 🧠 LLM Providers
 
-- Summarizes content into Markdown using **sections**, **bullet points**, and **clear formatting**.
-- Merges summaries recursively in pairs to ensure **contextual cohesion**.
+| Provider | Models | Features |
+|----------|--------|----------|
+| Google Gemini | gemini-2.0-flash (default) | Fast, cost-effective summaries |
+| OpenAI | gpt-4o (default) | High-quality summaries, strong reasoning |
+| Anthropic | claude-3-7-sonnet (default) | High-quality summaries, excellent formatting |
 
 ---
 
 ## 📌 Example Usage
 
 ### Basic Usage
-Run the main script to process all configured sources:
-```bash
-python -m knowledge_base_builder.cli --file "https://example.com/document.pdf" --file "/path/to/document.docx" --output kb.md
-```
+Run the CLI tool to process sources with your preferred LLM:
 
-Or use a sources file:
 ```bash
-python -m knowledge_base_builder.cli --sources-file sources.json --output kb.md
+# Using Google Gemini (default)
+python -m knowledge_base_builder.cli --llm-provider gemini --file "https://example.com/document.pdf" --output kb.md
+
+# Using OpenAI GPT-4o
+python -m knowledge_base_builder.cli --llm-provider openai --file "/path/to/document.docx" --output kb.md
+
+# Using Anthropic Claude
+python -m knowledge_base_builder.cli --llm-provider anthropic --file "https://example.com/page.html" --output kb.md
 ```
 
 ---
@@ -145,12 +164,12 @@ python -m knowledge_base_builder.cli --sources-file sources.json --output kb.md
 
 ---
 
-## 🧪 TODOs & Enhancements
+## 🧪 Upcoming Enhancements
+- [x] Add support for other large language models (GPT-4o, Claude 3.7)
 - [ ] Add support for other data sources (Google Drive, LinkedIn)
-- [ ] Add support for other large language models (GPT4o, Claude 3.7)
 - [ ] Support knowledge base to vector DB (e.g., Pinecone, Chroma)
 - [ ] Create configuration file for easier customization
-- [ ] Implement async processing for better performance
+- [ ] Implement additional async processing for better performance
 
 ---
 

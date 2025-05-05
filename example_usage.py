@@ -18,7 +18,7 @@ def main():
     # API and model configuration
     config = {
         'GOOGLE_API_KEY': os.getenv("GOOGLE_API_KEY"),
-        'GITHUB_API_KEY': os.getenv("GITHUB_API_KEY"),
+        'GITHUB_API_KEY': os.getenv("GITHUB_API_KEY"), # Optional
     }
     
     # Ensure the Google API key is available

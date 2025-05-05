@@ -13,20 +13,43 @@ def main():
     
     # Parse command line arguments
     parser = argparse.ArgumentParser(
-        description="Build a knowledge base from multiple sources using Google Gemini models."
+        description="Build a knowledge base from multiple sources using various LLM providers."
     )
     
     # Basic configuration
     parser.add_argument("--output", "-o", default="final_knowledge_base.md",
                       help="Output file path for the knowledge base (default: final_knowledge_base.md)")
     
-    # API Keys and configuration
+    # LLM Provider selection
+    parser.add_argument("--llm-provider", default=os.environ.get('LLM_PROVIDER', 'gemini'),
+                      choices=['gemini', 'openai', 'anthropic'],
+                      help="LLM provider to use (default: gemini)")
+    
+    # Gemini configuration
     parser.add_argument("--google-api-key", 
                       help="Google API Key (default: from GOOGLE_API_KEY env var)")
     parser.add_argument("--gemini-model", default="gemini-2.0-flash",
                       help="Gemini model name (default: gemini-2.0-flash)")
     parser.add_argument("--gemini-temperature", type=float, default=0.7,
                       help="Temperature for Gemini model (default: 0.7)")
+    
+    # OpenAI configuration
+    parser.add_argument("--openai-api-key", 
+                      help="OpenAI API Key (default: from OPENAI_API_KEY env var)")
+    parser.add_argument("--openai-model", default="gpt-4o",
+                      help="OpenAI model name (default: gpt-4o)")
+    parser.add_argument("--openai-temperature", type=float, default=0.7,
+                      help="Temperature for OpenAI model (default: 0.7)")
+    
+    # Anthropic configuration
+    parser.add_argument("--anthropic-api-key", 
+                      help="Anthropic API Key (default: from ANTHROPIC_API_KEY env var)")
+    parser.add_argument("--anthropic-model", default="claude-3-7-sonnet",
+                      help="Anthropic model name (default: claude-3-7-sonnet)")
+    parser.add_argument("--anthropic-temperature", type=float, default=0.7,
+                      help="Temperature for Anthropic model (default: 0.7)")
+    
+    # GitHub configuration
     parser.add_argument("--github-username", 
                       help="GitHub username (default: from GITHUB_USERNAME env var)")
     parser.add_argument("--github-api-key", 
@@ -41,37 +64,60 @@ def main():
                       help="[Legacy] PDF URLs or local file paths")
     parser.add_argument("--document", "-d", action="append", default=[],
                       help="[Legacy] Document URLs or local file paths (.docx, .txt, .md, .rtf)")
-    parser.add_argument("--spreadsheet", "-sp", action="append", default=[],
+    parser.add_argument("--spreadsheet", "-s", action="append", default=[],
                       help="[Legacy] Spreadsheet URLs or local file paths (.csv, .tsv, .xlsx, .ods)")
-    parser.add_argument("--web-content", "-wc", action="append", default=[],
-                      help="[Legacy] Web content URLs or local file paths (.html, .xml, .json, .yaml, .yml)")
-    parser.add_argument("--web", "-w", action="append", default=[],
-                      help="[Legacy] Web URLs to process")
+    parser.add_argument("--web-content", "-w", action="append", default=[],
+                      help="[Legacy] Web content URLs or local file paths (.html, .xml, .json, .yaml/.yml)")
+    parser.add_argument("--web-url", "-u", action="append", default=[],
+                      help="[Legacy] Individual web page URLs")
     
-    parser.add_argument("--sitemap", "-s", 
-                      help="Sitemap URL to process all contained URLs")
-    parser.add_argument("--sources-file", 
-                      help="JSON file containing sources configuration")
+    # Website / Sitemap
+    parser.add_argument("--sitemap", "-m", 
+                      help="Process an entire website using its sitemap URL")
     
+    # GitHub repositories
+    parser.add_argument("--github-repo", "-g", action="append", default=[],
+                      help="GitHub repositories to process (format: username/repo or https://github.com/username/repo)")
+    
+    # Parse arguments
     args = parser.parse_args()
     
-    # Load API keys from args or environment
+    # Build config dictionary
     config = {
-        'GOOGLE_API_KEY': args.google_api_key or os.getenv("GOOGLE_API_KEY"),
-        'GEMINI_MODEL': args.gemini_model or os.getenv("GEMINI_MODEL", "gemini-2.0-flash"),
-        'GEMINI_TEMPERATURE': float(args.gemini_temperature or os.getenv("GEMINI_TEMPERATURE", "0.7")),
-        'GITHUB_USERNAME': args.github_username or os.getenv("GITHUB_USERNAME", ""),
-        'GITHUB_API_KEY': args.github_api_key or os.getenv("GITHUB_API_KEY"),
+        # LLM provider selection
+        'LLM_PROVIDER': args.llm_provider,
+        
+        # Gemini configuration
+        'GOOGLE_API_KEY': args.google_api_key or os.environ.get('GOOGLE_API_KEY', ''),
+        'GEMINI_MODEL': args.gemini_model,
+        'GEMINI_TEMPERATURE': args.gemini_temperature,
+        
+        # OpenAI configuration
+        'OPENAI_API_KEY': args.openai_api_key or os.environ.get('OPENAI_API_KEY', ''),
+        'OPENAI_MODEL': args.openai_model,
+        'OPENAI_TEMPERATURE': args.openai_temperature,
+        
+        # Anthropic configuration
+        'ANTHROPIC_API_KEY': args.anthropic_api_key or os.environ.get('ANTHROPIC_API_KEY', ''),
+        'ANTHROPIC_MODEL': args.anthropic_model,
+        'ANTHROPIC_TEMPERATURE': args.anthropic_temperature,
+        
+        # GitHub configuration
+        'GITHUB_USERNAME': args.github_username or os.environ.get('GITHUB_USERNAME', ''),
+        'GITHUB_API_KEY': args.github_api_key or os.environ.get('GITHUB_API_KEY', ''),
     }
     
-    # Validate required API key
-    if not config['GOOGLE_API_KEY']:
-        parser.error("Google API Key is required. Set --google-api-key or GOOGLE_API_KEY environment variable.")
-        return
+    # Validate required API keys based on selected provider
+    if args.llm_provider == 'gemini' and not config['GOOGLE_API_KEY']:
+        parser.error("Google API Key is required when using Gemini. Provide via --google-api-key or GOOGLE_API_KEY environment variable.")
+    elif args.llm_provider == 'openai' and not config['OPENAI_API_KEY']:
+        parser.error("OpenAI API Key is required when using OpenAI. Provide via --openai-api-key or OPENAI_API_KEY environment variable.")
+    elif args.llm_provider == 'anthropic' and not config['ANTHROPIC_API_KEY']:
+        parser.error("Anthropic API Key is required when using Claude. Provide via --anthropic-api-key or ANTHROPIC_API_KEY environment variable.")
     
-    # Build sources configuration
+    # Build sources dictionary for the knowledge base
     sources = {
-        # New unified approach
+        # Unified approach
         'files': args.file,
         
         # Legacy support
@@ -79,52 +125,21 @@ def main():
         'document_urls': args.document,
         'spreadsheet_urls': args.spreadsheet,
         'web_content_urls': args.web_content,
-        'web_urls': args.web,
+        'web_urls': args.web_url,
+        
+        # Sitemap
         'sitemap_url': args.sitemap,
+        
+        # GitHub repositories
+        'github_repositories': args.github_repo,
     }
     
-    # If sources file is provided, load and merge with command line sources
-    if args.sources_file:
-        try:
-            with open(args.sources_file, 'r') as file:
-                file_sources = json.load(file)
-                
-                # Process unified files list
-                if 'files' in file_sources and file_sources['files']:
-                    sources['files'].extend(file_sources['files'])
-                
-                # Legacy format support
-                for key in ['pdf_urls', 'document_urls', 'spreadsheet_urls', 'web_content_urls', 'web_urls']:
-                    if key in file_sources and file_sources[key]:
-                        sources[key].extend(file_sources[key])
-                
-                if 'sitemap_url' in file_sources and file_sources['sitemap_url'] and not sources['sitemap_url']:
-                    sources['sitemap_url'] = file_sources['sitemap_url']
-        except Exception as e:
-            print(f"Error loading sources file: {e}")
+    # Initialize KB Builder
+    kb_builder = KBBuilder(config)
     
-    # Validate that we have at least one source
-    has_sources = (
-        sources['files'] or
-        sources['pdf_urls'] or
-        sources['document_urls'] or
-        sources['spreadsheet_urls'] or
-        sources['web_content_urls'] or
-        sources['web_urls'] or
-        sources['sitemap_url']
-    )
-    
-    if not has_sources:
-        parser.error("No sources provided. Use --file, --sitemap, or --sources-file.")
-        return
-    
-    # Create KB builder
-    kbb = KBBuilder(config)
-    
-    # Build knowledge base
-    output_file = kbb.build_kb(sources=sources, output_file=args.output)
-    
-    print(f"Knowledge base successfully created at: {output_file}")
+    # Build and save knowledge base
+    output_path = kb_builder.build_kb(sources, args.output)
+    print(f"Knowledge base built successfully: {output_path}")
 
 if __name__ == "__main__":
     main() 

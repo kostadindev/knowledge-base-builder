@@ -64,9 +64,9 @@ The script will:
 The codebase follows an object-oriented design with the following components:
 
 ```
-KnowledgeBaseApp (Main application class)
+KBBuilder (Main application class)
 ├── GeminiClient (LLM client)
-├── KnowledgeBaseBuilder (KB generation & merging)
+├── LLM (KB generation & merging)
 ├── PDFProcessor (PDF handling)
 ├── WebsiteProcessor (Website parsing)
 └── GitHubProcessor (GitHub integration)
@@ -74,9 +74,9 @@ KnowledgeBaseApp (Main application class)
 
 ### Class Responsibilities:
 
-- **KnowledgeBaseApp**: Orchestrates the entire knowledge base building process
+- **KBBuilder**: Orchestrates the entire knowledge base building process
 - **GeminiClient**: Handles interactions with Google's Gemini AI model
-- **KnowledgeBaseBuilder**: Builds and merges knowledge base content
+- **LLM**: Builds and merges knowledge base content
 - **PDFProcessor**: Downloads and extracts text from PDF files
 - **WebsiteProcessor**: Parses sitemaps and extracts content from websites
 - **GitHubProcessor**: Fetches Markdown files from GitHub repositories
@@ -88,14 +88,14 @@ KnowledgeBaseApp (Main application class)
 ├── construct_kb.py         # Main script
 ├── gemini_client.py        # Gemini API client
 ├── kb_app.py               # Main application class
-├── kb_builder.py           # Knowledge base building utility
+├── llm.py           # Knowledge base building utility
 ├── pdf_processor.py        # PDF processing utility
 ├── website_processor.py    # Website processing utility
 ├── github_processor.py     # GitHub processing utility
 ├── __init__.py             # Package initialization
 ├── requirements.txt        # Python dependencies
 ├── .env                    # Environment variables
-└── test_kb_builder.py      # Test script
+└── test_llm.py      # Test script
 ```
 
 ---
@@ -130,7 +130,7 @@ python construct_kb.py
 ### Using Individual Components
 
 ```python
-from kb_app import KnowledgeBaseApp
+from kb_app import KBBuilder
 import os
 
 # Configuration
@@ -141,7 +141,7 @@ config = {
 }
 
 # Create app instance
-app = KnowledgeBaseApp(config)
+app = KBBuilder(config)
 
 # Process specific sources
 app.process_pdfs(["path/to/document.pdf"])

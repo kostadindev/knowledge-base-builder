@@ -37,6 +37,17 @@ class KnowledgeBaseApp:
             except Exception as e:
                 print(f"❌ PDF error: {e}")
 
+    def process_web_urls(self, web_urls: List[str]) -> None:
+        """Process and build knowledge bases from individual web URLs."""
+        for url in web_urls:
+            try:
+                print(f"🔗 Website: {url}")
+                text = self.website_processor.download_and_clean_html(url)
+                if text.strip():
+                    self.kbs.append(self.kb_builder.build_kb(text))
+            except Exception as e:
+                print(f"❌ Website error: {e}")
+
     def process_websites(self, sitemap_url: str) -> None:
         """Process and build knowledge bases from websites."""
         try:

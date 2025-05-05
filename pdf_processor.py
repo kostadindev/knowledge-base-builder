@@ -13,8 +13,24 @@ class PDFProcessor:
         if url.startswith("file://"):
             parsed = urllib.parse.urlparse(url)
             local_path = urllib.parse.unquote(parsed.path)
-            if os.name == 'nt' and local_path.startswith('/'):
-                local_path = local_path.lstrip('/')
+            
+            # Handle path differences between Windows and Mac/Linux
+            if os.name == 'nt':  # Windows
+                # For Windows paths with drive letters (like C:/)
+                if local_path.startswith('/') and len(local_path) > 1:
+                    # Remove the leading slash before the drive letter
+                    # Example: /C:/path/to/file.pdf -> C:/path/to/file.pdf
+                    if local_path[1].isalpha() and local_path[2] == ':':
+                        local_path = local_path[1:]
+                    else:
+                        local_path = local_path.lstrip('/')
+            else:  # Mac/Linux - ensure path starts with /
+                if not local_path.startswith('/'):
+                    local_path = '/' + local_path
+            
+            # Replace any remaining URL encodings (like %20 for spaces)
+            local_path = urllib.parse.unquote(local_path)
+                    
             if not os.path.exists(local_path):
                 raise FileNotFoundError(f"Local file not found: {local_path}")
             return local_path

@@ -1,4 +1,5 @@
 import os
+import platform
 from dotenv import load_dotenv
 from kb_app import KnowledgeBaseApp
 
@@ -19,13 +20,22 @@ def main():
     pdf_urls = [
         "https://kostadindev.github.io/static/documents/cv.pdf",
         "https://kostadindev.github.io/static/documents/sbu_transcript.pdf",
+        # Original Windows file path - will work on Windows
         "file:///C:/Users/kosta/OneDrive/Desktop/MS%20Application%20Materials/emf-ellipse-publication.pdf"
     ]
+    
+    # Add a list of individual web URLs to process
+    web_urls = [
+        "https://kostadindev.github.io/index.html",
+        "https://kostadindev.github.io/projects.html"
+    ]
+    
     sitemap_url = "https://kostadindev.github.io/sitemap.xml"
 
     # Create and run the app
     app = KnowledgeBaseApp(config)
     app.process_pdfs(pdf_urls)
+    app.process_web_urls(web_urls)  # Process individual web URLs
     app.process_websites(sitemap_url)
     # Uncomment to enable GitHub processing
     # app.process_github()

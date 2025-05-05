@@ -11,6 +11,7 @@ This project builds a **textual knowledge base** from various data sources such 
 - 📘 **GitHub integration** *(optional)* – Fetches Markdown files from public repositories.
 - 🧠 **LLM-powered summarization** – Uses Gemini to convert raw data into readable, structured Markdown.
 - 🔁 **Recursive merging** – Combines multiple knowledge base sections into a single cohesive document.
+- 🏗️ **Modular design** – Well-organized class-based architecture for better maintainability.
 
 ---
 
@@ -42,12 +43,10 @@ GITHUB_API_KEY=your_github_token  # Optional
 pip install -r requirements.txt
 ```
 
-> Make sure `langchain`, `bs4`, `requests`, and `python-dotenv` are included.
-
 ### 4. Run the Script
 
 ```bash
-python main.py
+python construct_kb.py
 ```
 
 The script will:
@@ -60,14 +59,43 @@ The script will:
 
 ---
 
-## 🛠️ Project Structure
+## 🏗️ Architecture
 
-```bash
+The codebase follows an object-oriented design with the following components:
+
+```
+KnowledgeBaseApp (Main application class)
+├── GeminiClient (LLM client)
+├── KnowledgeBaseBuilder (KB generation & merging)
+├── PDFProcessor (PDF handling)
+├── WebsiteProcessor (Website parsing)
+└── GitHubProcessor (GitHub integration)
+```
+
+### Class Responsibilities:
+
+- **KnowledgeBaseApp**: Orchestrates the entire knowledge base building process
+- **GeminiClient**: Handles interactions with Google's Gemini AI model
+- **KnowledgeBaseBuilder**: Builds and merges knowledge base content
+- **PDFProcessor**: Downloads and extracts text from PDF files
+- **WebsiteProcessor**: Parses sitemaps and extracts content from websites
+- **GitHubProcessor**: Fetches Markdown files from GitHub repositories
+
+### File Structure:
+
+```
 .
-├── main.py                # Main pipeline logic
-├── requirements.txt       # Python dependencies
-├── .env                   # Your secret tokens and config
-└── final_knowledge_base.md # Output KB (auto-generated)
+├── construct_kb.py         # Main script
+├── gemini_client.py        # Gemini API client
+├── kb_app.py               # Main application class
+├── kb_builder.py           # Knowledge base building utility
+├── pdf_processor.py        # PDF processing utility
+├── website_processor.py    # Website processing utility
+├── github_processor.py     # GitHub processing utility
+├── __init__.py             # Package initialization
+├── requirements.txt        # Python dependencies
+├── .env                    # Environment variables
+└── test_kb_builder.py      # Test script
 ```
 
 ---
@@ -80,7 +108,7 @@ The script will:
 | Websites   | All URLs found via XML sitemap                    | ✅     |
 | GitHub     | Markdown files from your public repositories      | 🔲 (Optional, commented out) |
 
-To enable GitHub ingestion, uncomment the corresponding code in `main.py`.
+To enable GitHub ingestion, uncomment the corresponding code in `main()`.
 
 ---
 
@@ -93,14 +121,34 @@ To enable GitHub ingestion, uncomment the corresponding code in `main.py`.
 
 ## 📌 Example Usage
 
-Here’s what you’ll see in the terminal:
-
+### Basic Usage
+Run the main script to process all configured sources:
+```bash
+python construct_kb.py
 ```
-📄 PDF: https://example.com/doc.pdf
-🌐 Sitemap: https://example.com/sitemap.xml
-🔗 Website: https://example.com/page1
-🔀 Merging all knowledge bases...
-✅ Final KB written to: final_knowledge_base.md
+
+### Using Individual Components
+
+```python
+from kb_app import KnowledgeBaseApp
+import os
+
+# Configuration
+config = {
+    'GOOGLE_API_KEY': os.getenv("GOOGLE_API_KEY"),
+    'GEMINI_MODEL': "gemini-2.0-flash",
+    'GEMINI_TEMPERATURE': 0.7,
+}
+
+# Create app instance
+app = KnowledgeBaseApp(config)
+
+# Process specific sources
+app.process_pdfs(["path/to/document.pdf"])
+app.process_websites("https://example.com/sitemap.xml")
+
+# Generate final knowledge base
+app.build_final_kb("output.md")
 ```
 
 ---
@@ -134,6 +182,9 @@ Here’s what you’ll see in the terminal:
 - [ ] Handle rate limits for large GitHub accounts
 - [ ] Add CLI flags to enable/disable each source
 - [ ] Integrate with vector databases (e.g., Pinecone, Chroma)
+- [ ] Add unit tests for each class
+- [ ] Create configuration file for easier customization
+- [ ] Implement async processing for better performance
 
 ---
 

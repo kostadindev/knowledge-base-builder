@@ -1,0 +1,8 @@
+langchain>=0.1.0
+langchain-google-genai>=0.0.5
+langchain-community>=0.0.13
+beautifulsoup4>=4.12.2
+requests>=2.31.0
+python-dotenv>=1.0.0
+lxml>=4.9.3
+pypdf>=3.17.0

@@ -10,13 +10,13 @@ class TestLLM(unittest.TestCase):
         self.mock_client = MagicMock()
         self.llm = LLM(self.mock_client)
     
-    def test_build_kb(self):
+    def test_build(self):
         """Test building a knowledge base from text."""
         # Setup mock response
         self.mock_client.run.return_value = "Generated knowledge base"
         
         # Test with sample text
-        result = self.llm.build_kb("This is sample text for knowledge base generation.")
+        result = self.llm.build("This is sample text for knowledge base generation.")
         
         # Verify response
         self.assertEqual(result, "Generated knowledge base")

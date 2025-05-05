@@ -62,7 +62,7 @@ class KBBuilder:
         self.github_processor = None
         self.kbs: List[str] = []
 
-    def build_kb(self, sources: Dict[str, Any] = None, output_file: str = "final_knowledge_base.md") -> str:
+    def build(self, sources: Dict[str, Any] = None, output_file: str = "final_knowledge_base.md") -> str:
         """Synchronously run the pipeline up to merge, then dispatch async merge."""
         total_start_time = time.time()
         print("🚀 Starting Knowledge Base Builder pipeline...")
@@ -209,7 +209,7 @@ class KBBuilder:
         
         if text.strip():
             kb_start = time.time()
-            self.kbs.append(self.llm.build_kb(text))
+            self.kbs.append(self.llm.build(text))
             kb_end = time.time()
             print(f"  ⏱️ KB building: {kb_end - kb_start:.2f} seconds")
         
@@ -233,7 +233,7 @@ class KBBuilder:
         
         if text.strip():
             kb_start = time.time()
-            self.kbs.append(self.llm.build_kb(text))
+            self.kbs.append(self.llm.build(text))
             kb_end = time.time()
             print(f"  ⏱️ KB building: {kb_end - kb_start:.2f} seconds")
         
@@ -257,7 +257,7 @@ class KBBuilder:
         
         if text.strip():
             kb_start = time.time()
-            self.kbs.append(self.llm.build_kb(text))
+            self.kbs.append(self.llm.build(text))
             kb_end = time.time()
             print(f"  ⏱️ KB building: {kb_end - kb_start:.2f} seconds")
         
@@ -281,7 +281,7 @@ class KBBuilder:
         
         if text.strip():
             kb_start = time.time()
-            self.kbs.append(self.llm.build_kb(text))
+            self.kbs.append(self.llm.build(text))
             kb_end = time.time()
             print(f"  ⏱️ KB building: {kb_end - kb_start:.2f} seconds")
         
@@ -300,7 +300,7 @@ class KBBuilder:
         
         if text.strip():
             kb_start = time.time()
-            self.kbs.append(self.llm.build_kb(text))
+            self.kbs.append(self.llm.build(text))
             kb_end = time.time()
             print(f"  ⏱️ KB building: {kb_end - kb_start:.2f} seconds")
         
@@ -436,7 +436,7 @@ class KBBuilder:
                             
                             if text.strip():
                                 kb_start = time.time()
-                                self.kbs.append(self.llm.build_kb(text))
+                                self.kbs.append(self.llm.build(text))
                                 kb_end = time.time()
                                 print(f"    ⏱️ KB building: {kb_end - kb_start:.2f} seconds")
                             

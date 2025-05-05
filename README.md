@@ -1,6 +1,6 @@
 # 🧠 Multi-Source Knowledge Base Builder for LLMs
 
-This project builds a **textual knowledge base** from various data sources such as PDFs, websites, and GitHub markdown files, using **AI models** to structure and summarize the content. Supports **Google Gemini**, **OpenAI GPT-4o**, and **Anthropic Claude**. The final output is a **Markdown-formatted knowledge base**, ready for use in **RAG pipelines**, chatbots, or any LLM application.
+This project builds a web crawlable **textual knowledge base** from various data sources such as PDFs, websites, and GitHub markdown files, using **large language models** to structure and summarize the content. The final output is a **Markdown-formatted knowledge base**, ready for use as an llms.txt or llms-full.txt format. It can also be used in **RAG pipelines** and chatbots. Supports **Google Gemini**, **OpenAI GPT-4o**, and **Anthropic Claude**. The algorithm uses a logarithmic-depth parallel merge tree with a concurrency-limited semaphore to efficiently process and merge all documents.
 
 ---
 
@@ -41,20 +41,14 @@ pip install -e .
 Create a `.env` file in your project directory with the following variables (add the API keys for the models you intend to use):
 
 ```env
-# Choose your LLM provider (gemini, openai, or anthropic)
-LLM_PROVIDER=gemini
 
-# Google Gemini API Key
-GOOGLE_API_KEY=your_google_api_key # Obtain at https://ai.google.dev/gemini-api/docs/api-key
+# You need only one of the following
+GOOGLE_API_KEY=your_google_api_key_here
+OPENAI_API_KEY=your_openai_api_key_here
+ANTHROPIC_API_KEY=your_anthropic_api_key_here
 
-# OpenAI API Key
-OPENAI_API_KEY=your_openai_api_key # Obtain at https://platform.openai.com/api-keys
-
-# Anthropic API Key
-ANTHROPIC_API_KEY=your_anthropic_api_key # Obtain at https://console.anthropic.com/keys
-
-# GitHub API Key (optional)
-GITHUB_API_KEY=your_github_token  # Only required for accounts with many repositories
+# Optional if you want to include Github repositories with a high rate limit
+GITHUB_API_KEY=your_github_api_key_here 
 ```
 
 ### 2. Use as a Python Package
@@ -76,25 +70,44 @@ config = {
 }
 
 # Source documents - unified approach
-sources = {
-    'files': [
-        # All file types are supported through a single list
-        "https://example.com/document.pdf",
-        "/path/to/local/document.pdf",
-        "https://example.com/data.csv",
-        "/path/to/local/document.docx",
-        "https://example.com/page1.html",
-        "https://example.com/data.json",
-        "https://example.com/"  # Regular web pages are also supported
-    ],
-    # 'sitemap_url': "https://example.com/sitemap.xml"
-}
-
+    sources = {
+        # Unified files list - automatically detects and processes each file type
+        'files': [
+            # PDF documents - remote
+            "https://kostadindev.github.io/static/documents/cv.pdf",
+            "https://kostadindev.github.io/static/documents/sbu_transcript.pdf",
+            # Local file path (no need for file:/// prefix)
+            "C:/Users/kosta/OneDrive/Desktop/MS Application Materials/emf-ellipse-publication.pdf",
+            
+            # Web pages
+            "https://kostadindev.github.io/index.html",
+            "https://kostadindev.github.io/projects.html",
+            
+            # Add other file types as needed
+            # "https://example.com/data.csv",
+            # "path/to/local/document.docx",  # Relative local path example
+            # "https://example.com/api-docs.json",
+        ],
+        
+        # Process all pages from a sitemap
+        'sitemap_url': "https://kostadindev.github.io/sitemap.xml",
+        
+        # GitHub repositories to process (format: username/repo or full URL)
+        'github_repositories': [
+            "https://github.com/kostadindev/Knowledge-Base-Builder",
+            "https://github.com/kostadindev/GONEXT",
+            "https://github.com/kostadindev/GONEXT-ML",
+            "https://github.com/kostadindev/meta-me",
+            "https://github.com/kostadindev/Recursive-QA",
+            "https://github.com/kostadindev/deep-gestures",
+            "https://github.com/kostadindev/emf-ellipse"
+        ]
+    }
 # Create KB builder
 kbb = KBBuilder(config)
 
 # Build knowledge base
-kbb.build_kb(sources=sources, output_file="final_knowledge_base.md")
+kbb.build(sources=sources, output_file="final_knowledge_base.md")
 ```
 
 ---
@@ -123,24 +136,6 @@ kbb.build_kb(sources=sources, output_file="final_knowledge_base.md")
 
 ---
 
-## 📌 Example Usage
-
-### Basic Usage
-Run the CLI tool to process sources with your preferred LLM:
-
-```bash
-# Using Google Gemini (default)
-python -m knowledge_base_builder.cli --llm-provider gemini --file "https://example.com/document.pdf" --output kb.md
-
-# Using OpenAI GPT-4o
-python -m knowledge_base_builder.cli --llm-provider openai --file "/path/to/document.docx" --output kb.md
-
-# Using Anthropic Claude
-python -m knowledge_base_builder.cli --llm-provider anthropic --file "https://example.com/page.html" --output kb.md
-```
-
----
-
 ## 📥 Output Example
 
 ```markdown
@@ -165,11 +160,10 @@ python -m knowledge_base_builder.cli --llm-provider anthropic --file "https://ex
 ---
 
 ## 🧪 Upcoming Enhancements
-- [x] Add support for other large language models (GPT-4o, Claude 3.7)
 - [ ] Add support for other data sources (Google Drive, LinkedIn)
-- [ ] Support knowledge base to vector DB (e.g., Pinecone, Chroma)
-- [ ] Create configuration file for easier customization
+- [ ] Support conversion from knowledge base to vector DB (e.g., Pinecone, Chroma)
 - [ ] Implement additional async processing for better performance
+- [ ] Improve performance of the logarithmic-depth parallel merge tree with a concurrency-limited semaphore
 
 ---
 

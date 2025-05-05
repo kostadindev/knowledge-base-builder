@@ -108,7 +108,7 @@ def main():
     kbb = KBBuilder(config)
     
     # Build the knowledge base
-    kbb.build_kb(sources=sources, output_file=output_file)
+    kbb.build(sources=sources, output_file=output_file)
     
     print(f"\nKnowledge base creation complete!")
     print(f"The knowledge base has been saved to: {output_file}")

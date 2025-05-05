@@ -38,10 +38,10 @@ class TestConstructKB(unittest.TestCase):
         self.assertEqual(call_args['GITHUB_USERNAME'], 'test_user')
         self.assertEqual(call_args['GITHUB_API_KEY'], 'fake_github_key')
         
-        # Verify build_kb was called with the right sources and output file
-        mock_kbb_instance.build_kb.assert_called_once()
-        sources_arg = mock_kbb_instance.build_kb.call_args[1]['sources']
-        output_arg = mock_kbb_instance.build_kb.call_args[1]['output_file']
+        # Verify build was called with the right sources and output file
+        mock_kbb_instance.build.assert_called_once()
+        sources_arg = mock_kbb_instance.build.call_args[1]['sources']
+        output_arg = mock_kbb_instance.build.call_args[1]['output_file']
         
         # Check sources structure
         self.assertIn('pdf_urls', sources_arg)

@@ -47,8 +47,8 @@ class TestKBBuilder(unittest.TestCase):
     @patch('kb_builder.KBBuilder.process_websites')
     @patch('kb_builder.KBBuilder.process_github')
     @patch('kb_builder.KBBuilder.build_final_kb')
-    def test_build_kb(self, mock_final, mock_github, mock_web, mock_urls, mock_pdfs):
-        """Test the build_kb method calls all expected processing functions."""
+    def test_build(self, mock_final, mock_github, mock_web, mock_urls, mock_pdfs):
+        """Test the build method calls all expected processing functions."""
         with patch('kb_builder.GeminiClient'):
             kbb = KBBuilder(self.config)
             
@@ -58,7 +58,7 @@ class TestKBBuilder(unittest.TestCase):
                 'sitemap_url': 'http://test.com/sitemap.xml'
             }
             
-            kbb.build_kb(sources, 'test_output.md')
+            kbb.build(sources, 'test_output.md')
             
             mock_pdfs.assert_called_once_with(['test.pdf'])
             mock_urls.assert_called_once_with(['http://test.com'])
@@ -67,11 +67,11 @@ class TestKBBuilder(unittest.TestCase):
             mock_final.assert_called_once_with('test_output.md')
     
     @patch('kb_builder.KBBuilder.build_final_kb')
-    def test_build_kb_empty_sources(self, mock_final):
-        """Test build_kb with empty sources."""
+    def test_build_empty_sources(self, mock_final):
+        """Test build with empty sources."""
         with patch('kb_builder.GeminiClient'):
             kbb = KBBuilder(self.config)
-            kbb.build_kb({}, 'test_output.md')
+            kbb.build({}, 'test_output.md')
             
             # Final KB should still be built
             mock_final.assert_called_once_with('test_output.md')

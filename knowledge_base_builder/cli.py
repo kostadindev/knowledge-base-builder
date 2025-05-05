@@ -138,7 +138,7 @@ def main():
     kb_builder = KBBuilder(config)
     
     # Build and save knowledge base
-    output_path = kb_builder.build_kb(sources, args.output)
+    output_path = kb_builder.build(sources, args.output)
     print(f"Knowledge base built successfully: {output_path}")
 
 if __name__ == "__main__":

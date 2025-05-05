@@ -11,7 +11,7 @@ class LLM:
         # A simple semaphore to cap concurrent in-flight requests
         self._sem = asyncio.Semaphore(max_concurrency)
 
-    def build_kb(self, text: str) -> str:
+    def build(self, text: str) -> str:
         """Build a single KB chunk synchronously."""
         start_time = time.time()
         prompt = (

@@ -162,33 +162,50 @@ kbb.build(sources=sources, output_file="final_knowledge_base.md")
 ## 🔍 Applications
 
 ### Personal Knowledge Management
-- **Professional Portfolio**: Create a comprehensive knowledge base of your resume, publications, projects, and web presence.
-- **Academic Research**: Compile research papers, conference proceedings, and academic publications into a structured knowledge base.
-- **Developer Documentation**: Convert your GitHub repositories, code documentation, and technical blog posts into a searchable resource.
+- **Professional Portfolio**: Create a comprehensive knowledge base integrating your resume, publications, projects, and online presence into a single searchable document.
+- **Academic Research**: Compile research papers, conference proceedings, and citations into a structured knowledge base for literature reviews or thesis preparation.
+- **Technical Documentation**: Consolidate documentation across multiple GitHub repositories, technical blogs, and API references into a unified technical manual.
 
 ### Web Crawlable LLM Context Enhancement
-- **/llms.txt**: Generate a compact context file that can be used to customize LLMs with your personal or organizational information.
-- **/llms-full.txt**: Create an expanded knowledge file with detailed information about your work, expertise, and content.
-- **Web Context**: This knowledge base can be used by web search LLM applications like Perplexity and ChatGPT to learn more about your application or site.
+- **/llms.txt**: Generate a compact, web-crawlable context file (typically 10-20KB) that allows LLMs to access your personal or organizational information during web searches.
+- **/llms-full.txt**: Create an expanded knowledge file (50-100KB) with comprehensive details about your work, expertise, and content that search-powered LLMs can index.
+- **Web Context Sources**: Enable web search LLMs like Perplexity, ChatGPT, Claude, and Gemini to discover and reference your structured information during user queries.
 
 ### RAG Applications
-- **Preprocessing for Vector Databases**: Generate structured content before embedding into vector stores like Pinecone, Chroma, or Weaviate.
-- **Context for Chatbot**: Provide knowledge base in a single LLM context to chatbots.
-- **Build RAG Systems**: Build Retrieval-Augmented Generation Applications using a text knowledge base.
+- **Vector Database Preprocessing**: Generate clean, structured content before embedding into vector stores like Pinecone, Chroma, or Weaviate, improving retrieval quality.
+- **Single-Context LLM Applications**: Provide a comprehensive knowledge base that fits within a single LLM context window (up to 128K tokens) for domain-specific assistants.
+- **Hybrid RAG Systems**: Combine the full knowledge base with selective vector retrieval for specialized question answering systems with reduced hallucination.
 
 ### Enterprise Use Cases
-- **Company Knowledge Base**: Consolidate internal documentation, product specs, and team information.
-- **Customer Support**: Create comprehensive knowledge bases from support tickets, FAQs, and product documentation.
-- **Competitive Analysis**: Build a structured repository of competitor information from various public sources.
-- **Interviewing Candidates**: Extract a summary of a candidate's web presence through a compiled knoweldge base of their Github, resume, papers, and website.
+- **Company Knowledge Base**: Consolidate internal documentation, product specifications, and team information into an easily updatable central resource.
+- **Customer Support**: Transform support tickets, FAQs, and product manuals into a comprehensive knowledge base for support agents or automated systems.
+- **Competitive Intelligence**: Build a structured repository of competitor information from various public sources, updated periodically with the latest data.
+- **Candidate Evaluation**: Generate comprehensive profiles of job candidates by compiling their GitHub contributions, research papers, portfolio, and online presence.
+- **Onboarding Acceleration**: Create personalized knowledge bases for new employees containing company policies, codebase documentation, and team information.
 
 ---
 
 ## 🧪 Upcoming Enhancements
-- [ ] Add support for other data sources (Google Drive, LinkedIn)
-- [ ] Support conversion from knowledge base to vector DB (e.g., Pinecone, Chroma)
-- [ ] Implement additional async processing for better performance
-- [ ] Improve performance of the logarithmic-depth parallel merge tree with a concurrency-limited semaphore
+
+### Data Sources Expansion
+- [ ] **Cloud Integration**: Add support for Google Drive, Dropbox, and OneDrive documents
+- [ ] **Social & Professional**: Add LinkedIn profiles, Twitter feeds, and Medium articles integration
+- [ ] **Academic Sources**: Connect to arXiv, Google Scholar, and research databases
+
+### Performance Optimizations
+- [ ] **Parallel Processing**: Improve multi-document processing with adaptive concurrency control
+- [ ] **Merge Algorithm**: Enhance the logarithmic-depth merge tree for better memory efficiency
+- [ ] **Streaming Processing**: Implement document streaming for reduced memory footprint
+
+### Output & Integration
+- [ ] **Vector DB Export**: Direct export to Pinecone, Chroma, Weaviate, and other vector databases
+- [ ] **LangChain Integration**: Simplified integration with LangChain for RAG applications
+- [ ] **Custom Schemas**: User-definable output schemas for specialized knowledge base formats
+
+### Advanced Features
+- [ ] **Incremental Updates**: Support for updating existing knowledge bases with new content
+- [ ] **Multi-language Support**: Process and merge content across different languages
+- [ ] **Custom Taxonomies**: Allow users to define custom categorization schemas for content organization
 
 ---
 

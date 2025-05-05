@@ -159,6 +159,31 @@ kbb.build(sources=sources, output_file="final_knowledge_base.md")
 
 ---
 
+## 🔍 Applications
+
+### Personal Knowledge Management
+- **Professional Portfolio**: Create a comprehensive knowledge base of your resume, publications, projects, and web presence.
+- **Academic Research**: Compile research papers, conference proceedings, and academic publications into a structured knowledge base.
+- **Developer Documentation**: Convert your GitHub repositories, code documentation, and technical blog posts into a searchable resource.
+
+### Web Crawlable LLM Context Enhancement
+- **/llms.txt**: Generate a compact context file that can be used to customize LLMs with your personal or organizational information.
+- **/llms-full.txt**: Create an expanded knowledge file with detailed information about your work, expertise, and content.
+- **Web Context**: This knowledge base can be used by web search LLM applications like Perplexity and ChatGPT to learn more about your application or site.
+
+### RAG Applications
+- **Preprocessing for Vector Databases**: Generate structured content before embedding into vector stores like Pinecone, Chroma, or Weaviate.
+- **Context for Chatbot**: Provide knowledge base in a single LLM context to chatbots.
+- **Build RAG Systems**: Build Retrieval-Augmented Generation Applications using a text knowledge base.
+
+### Enterprise Use Cases
+- **Company Knowledge Base**: Consolidate internal documentation, product specs, and team information.
+- **Customer Support**: Create comprehensive knowledge bases from support tickets, FAQs, and product documentation.
+- **Competitive Analysis**: Build a structured repository of competitor information from various public sources.
+- **Interviewing Candidates**: Extract a summary of a candidate's web presence through a compiled knoweldge base of their Github, resume, papers, and website.
+
+---
+
 ## 🧪 Upcoming Enhancements
 - [ ] Add support for other data sources (Google Drive, LinkedIn)
 - [ ] Support conversion from knowledge base to vector DB (e.g., Pinecone, Chroma)

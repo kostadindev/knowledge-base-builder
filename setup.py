@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as f:
 
 setup(
     name="knowledge-base-builder",
-    version="0.1.0",
+    version="0.1.1",
     author="Kostadin Devedzhiev",
     author_email="kostadin.devedzhiev@gmail.com",  # Replace with actual email
     description="Build knowledge bases from multiple sources using large language models",

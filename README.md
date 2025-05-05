@@ -172,7 +172,7 @@ python construct_kb.py
 
 - [ ] Add support for other document types (.docx, .xlsx)
 - [ ] Add support for other data sources (Google Drive, LinkedIn)
-- [ ] Handle rate limits for large GitHub accounts
+- [ ] Add support for other large language models (GPT4o, Claude 3.7)
 - [ ] Support knowledge base to vector DB (e.g., Pinecone, Chroma)
 - [ ] Create configuration file for easier customization
 - [ ] Implement async processing for better performance
@@ -180,5 +180,7 @@ python construct_kb.py
 ---
 
 ## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 MIT © [Kostadin Devedzhiev](https://github.com/kostadindev)

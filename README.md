@@ -1,6 +1,6 @@
 # 🧠 Multi-Source Knowledge Base Builder for LLMs
 
-This project builds a web crawlable **textual knowledge base** from various data sources such as PDFs, websites, and GitHub markdown files, using **large language models** to structure and summarize the content. The final output is a **Markdown-formatted knowledge base**, ready for use as an llms.txt or llms-full.txt format. It can also be used in **RAG pipelines** and chatbots. Supports **Google Gemini**, **OpenAI GPT-4o**, and **Anthropic Claude**. The algorithm uses a logarithmic-depth parallel merge tree with a concurrency-limited semaphore to efficiently process and merge all documents.
+Python package to transform diverse content into a powerful, structured knowledge base. This tool seamlessly ingests **files** (PDFs, DOCXs, spreadsheets, Markdown, plaintext), **websites** (HTML pages, sitemaps, XML content), and **GitHub repositories**, processes them with state-of-the-art **large language models** (Gemini, GPT-4o, Claude), and produces a comprehensive **Markdown knowledge base**. Perfect for creating web-crawlable `/llms.txt` files, powering **RAG applications**, preprocessing content for **vector databases**, or building specialized chatbots. The algorithm uses a logarithmic-depth parallel merge tree with a concurrency-limited semaphore to efficiently process and merge all documents.
 
 ---
 
@@ -161,10 +161,6 @@ kbb.build(sources=sources, output_file="final_knowledge_base.md")
 
 ## 🔍 Applications
 
-### Personal Knowledge Management
-- **Professional Portfolio**: Create a comprehensive knowledge base integrating your resume, publications, projects, and online presence into a single searchable document.
-- **Academic Research**: Compile research papers, conference proceedings, and citations into a structured knowledge base for literature reviews or thesis preparation.
-- **Technical Documentation**: Consolidate documentation across multiple GitHub repositories, technical blogs, and API references into a unified technical manual.
 
 ### Web Crawlable LLM Context Enhancement
 - **/llms.txt**: Generate a compact, web-crawlable context file (typically 10-20KB) that allows LLMs to access your personal or organizational information during web searches.
@@ -175,6 +171,11 @@ kbb.build(sources=sources, output_file="final_knowledge_base.md")
 - **Vector Database Preprocessing**: Generate clean, structured content before embedding into vector stores like Pinecone, Chroma, or Weaviate, improving retrieval quality.
 - **Single-Context LLM Applications**: Provide a comprehensive knowledge base that fits within a single LLM context window (up to 128K tokens) for domain-specific assistants.
 - **Hybrid RAG Systems**: Combine the full knowledge base with selective vector retrieval for specialized question answering systems with reduced hallucination.
+
+### Personal Knowledge Management
+- **Professional Portfolio**: Create a comprehensive knowledge base integrating your resume, publications, projects, and online presence into a single searchable document.
+- **Academic Research**: Compile research papers, conference proceedings, and citations into a structured knowledge base for literature reviews or thesis preparation.
+- **Technical Documentation**: Consolidate documentation across multiple GitHub repositories, technical blogs, and API references into a unified technical manual.
 
 ### Enterprise Use Cases
 - **Company Knowledge Base**: Consolidate internal documentation, product specifications, and team information into an easily updatable central resource.

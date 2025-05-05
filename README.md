@@ -7,79 +7,95 @@ This project builds a **textual knowledge base** from various data sources such 
 ## ✨ Features
 
 - 📄 **PDF ingestion** – Downloads local or remote PDFs and extracts structured text.
-- 🌐 **Website ingestion** – Crawls pages from a sitemap and extracts clean HTML content.
-- 📘 **GitHub integration** *(optional)* – Fetches Markdown files from public repositories.
+- 🌐 **Website ingestion** – Crawls pages from a sitemap or list of pages and extracts clean HTML content.
+- 📘 **GitHub integration**  – Fetches Markdown files from public repositories.
 - 🧠 **LLM-powered summarization** – Uses Gemini to convert raw data into readable, structured Markdown.
 - 🔁 **Recursive merging** – Combines multiple knowledge base sections into a single cohesive document.
-- 🏗️ **Modular design** – Well-organized class-based architecture for better maintainability.
+
+---
+
+## 🚀 Installation
+
+### Install from PyPI
+
+```bash
+pip install knowledge-base-builder
+```
+
+### Install from Source
+
+```bash
+git clone https://github.com/kostadindev/knowledge-base-builder.git
+cd knowledge-base-builder
+pip install -e .
+```
 
 ---
 
 ## 🚀 Quickstart
 
-### 1. Clone the Repository
+### 1. Set up your `.env` file
 
-```bash
-git clone https://github.com/<your-username>/llm-kb-builder.git
-cd llm-kb-builder
-```
-
-### 2. Set up your `.env` file
-
-Create a `.env` file in the root directory with the following variables:
+Create a `.env` file in your project directory with the following variables:
 
 ```env
-GOOGLE_API_KEY=your_google_api_key
-GEMINI_MODEL=gemini-2.0-flash
-GEMINI_TEMPERATURE=0.7
+GOOGLE_API_KEY=your_google_api_key # Required
 
-GITHUB_USERNAME=your_github_username
-GITHUB_API_KEY=your_github_token  # Optional
+GITHUB_USERNAME=your_github_username # Optional if you want to include Github repositories as file sources.
+GITHUB_API_KEY=your_github_token  # Optional (only required for accounts with a large number of repositories 50+)
 ```
 
-### 3. Install Dependencies
+### 2. Use as a Python Package
 
-```bash
-pip install -r requirements.txt
+```python
+import os
+from dotenv import load_dotenv
+from knowledge_base_builder import KBBuilder
+
+# Load environment variables
+load_dotenv()
+
+# API and model configuration
+config = {
+    'GOOGLE_API_KEY': os.getenv("GOOGLE_API_KEY"),
+}
+
+# Source documents
+sources = {
+    'pdf_urls': [
+        "https://example.com/document.pdf",
+        "file:///path/to/local/document.pdf"
+    ],
+    'web_urls': [
+        "https://example.com/page1.html",
+        "https://example.com/page2.html"
+    ],
+    'sitemap_url': "https://example.com/sitemap.xml"
+}
+
+# Create KB builder
+kbb = KBBuilder(config)
+
+# Build knowledge base
+kbb.build_kb(sources=sources, output_file="final_knowledge_base.md")
 ```
 
-### 4. Run the Script
-
-```bash
-python construct_kb.py
+Example `sources.json` file:
+```json
+{
+  "pdf_urls": [
+    "https://example.com/document.pdf",
+    "file:///path/to/local/document.pdf"
+  ],
+  "web_urls": [
+    "https://example.com/page1.html"
+  ],
+  "sitemap_url": "https://example.com/sitemap.xml"
+}
 ```
-
-The script will:
-
-1. Download PDFs and extract text.
-2. Crawl your sitemap and parse web page content.
-3. *(Optional)* Fetch Markdown files from your GitHub repos.
-4. Use Gemini to convert all content into structured Markdown.
-5. Merge everything into `final_knowledge_base.md`.
 
 ---
 
-## 🏗️ Architecture
-
-The codebase follows an object-oriented design with the following components:
-
-```
-KBBuilder (Main application class)
-├── GeminiClient (LLM client)
-├── LLM (KB generation & merging)
-├── PDFProcessor (PDF handling)
-├── WebsiteProcessor (Website parsing)
-└── GitHubProcessor (GitHub integration)
-```
-
-### Class Responsibilities:
-
-- **KBBuilder**: Orchestrates the entire knowledge base building process
-- **GeminiClient**: Handles interactions with Google's Gemini AI model
-- **LLM**: Builds and merges knowledge base content
-- **PDFProcessor**: Downloads and extracts text from PDF files
-- **WebsiteProcessor**: Parses sitemaps and extracts content from websites
-- **GitHubProcessor**: Fetches Markdown files from GitHub repositories
 
 ### File Structure:
 
@@ -106,7 +122,7 @@ KBBuilder (Main application class)
 |------------|---------------------------------------------------|--------|
 | PDFs       | Local or HTTP/HTTPS links                         | ✅     |
 | Websites   | All URLs found via XML sitemap                    | ✅     |
-| GitHub     | Markdown files from your public repositories      | 🔲 (Optional, commented out) |
+| GitHub     | Markdown files from your public repositories      | ✅     |
 
 To enable GitHub ingestion, uncomment the corresponding code in `main()`.
 
@@ -125,30 +141,6 @@ To enable GitHub ingestion, uncomment the corresponding code in `main()`.
 Run the main script to process all configured sources:
 ```bash
 python construct_kb.py
-```
-
-### Using Individual Components
-
-```python
-from kb_app import KBBuilder
-import os
-
-# Configuration
-config = {
-    'GOOGLE_API_KEY': os.getenv("GOOGLE_API_KEY"),
-    'GEMINI_MODEL': "gemini-2.0-flash",
-    'GEMINI_TEMPERATURE': 0.7,
-}
-
-# Create app instance
-app = KBBuilder(config)
-
-# Process specific sources
-app.process_pdfs(["path/to/document.pdf"])
-app.process_websites("https://example.com/sitemap.xml")
-
-# Generate final knowledge base
-app.build_final_kb("output.md")
 ```
 
 ---
@@ -178,11 +170,10 @@ app.build_final_kb("output.md")
 
 ## 🧪 TODOs & Enhancements
 
-- [ ] Add support for other document types (.docx, .txt)
+- [ ] Add support for other document types (.docx, .xlsx)
+- [ ] Add support for other data sources (Google Drive, LinkedIn)
 - [ ] Handle rate limits for large GitHub accounts
-- [ ] Add CLI flags to enable/disable each source
-- [ ] Integrate with vector databases (e.g., Pinecone, Chroma)
-- [ ] Add unit tests for each class
+- [ ] Support knowledge base to vector DB (e.g., Pinecone, Chroma)
 - [ ] Create configuration file for easier customization
 - [ ] Implement async processing for better performance
 

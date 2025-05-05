@@ -1,7 +1,7 @@
 import os
 import platform
 from dotenv import load_dotenv
-from kb_builder import KBBuilder
+from knowledge_base_builder import KBBuilder
 
 # === Load .env variables ===
 load_dotenv()

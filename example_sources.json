@@ -1,0 +1,12 @@
+{
+  "files": [
+    "https://arxiv.org/pdf/2201.08239.pdf",
+    "https://www.gutenberg.org/files/1342/1342-0.txt",
+    "https://raw.githubusercontent.com/microsoft/ML-For-Beginners/main/README.md",
+    "https://people.sc.fsu.edu/~jburkardt/data/csv/addresses.csv",
+    "https://jsonplaceholder.typicode.com/posts",
+    "https://www.example.com/",
+    "file:///path/to/local/document.docx"
+  ],
+  "sitemap_url": "https://www.example.com/sitemap.xml"
+} 

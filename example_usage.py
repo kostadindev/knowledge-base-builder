@@ -28,19 +28,23 @@ def main():
         print("Please set it in your .env file or environment.")
         return
     
-    # Example source documents
+    # Example source documents using the new unified 'files' approach
     sources = {
-        # PDF documents (both remote and local)
-        'pdf_urls': [
-          "https://kostadindev.github.io/static/documents/cv.pdf",
-          "https://kostadindev.github.io/static/documents/sbu_transcript.pdf",
-          "file:///C:/Users/kosta/OneDrive/Desktop/MS%20Application%20Materials/emf-ellipse-publication.pdf"
-        ],
-        
-        # Individual web pages
-        'web_urls': [
+        # Unified files list - automatically detects and processes each file type
+        'files': [
+            # PDF documents
+            "https://kostadindev.github.io/static/documents/cv.pdf",
+            "https://kostadindev.github.io/static/documents/sbu_transcript.pdf",
+            "file:///C:/Users/kosta/OneDrive/Desktop/MS%20Application%20Materials/emf-ellipse-publication.pdf",
+            
+            # Web pages
             "https://kostadindev.github.io/index.html",
-            "https://kostadindev.github.io/projects.html"
+            "https://kostadindev.github.io/projects.html",
+            
+            # Add other file types as needed
+            # "https://example.com/data.csv",
+            # "file:///path/to/document.docx",
+            # "https://example.com/api-docs.json",
         ],
         
         # Process all pages from a sitemap
@@ -51,8 +55,7 @@ def main():
     output_file = "knowledge_base.md"
     
     print("Starting knowledge base creation with the following sources:")
-    print(f"- {len(sources['pdf_urls'])} PDF documents")
-    print(f"- {len(sources['web_urls'])} web pages")
+    print(f"- {len(sources['files'])} files/URLs")
     print(f"- Sitemap: {sources['sitemap_url']}")
     print(f"Output will be saved to: {output_file}")
     

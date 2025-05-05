@@ -60,17 +60,19 @@ config = {
     'GOOGLE_API_KEY': os.getenv("GOOGLE_API_KEY"),
 }
 
-# Source documents
+# Source documents - NEW unified approach
 sources = {
-    'pdf_urls': [
+    'files': [
+        # All file types are now supported through a single list
         "https://example.com/document.pdf",
-        "file:///path/to/local/document.pdf"
-    ],
-    'web_urls': [
+        "file:///path/to/local/document.pdf",
+        "https://example.com/data.csv",
+        "file:///path/to/local/document.docx",
         "https://example.com/page1.html",
-        "https://example.com/page2.html"
+        "https://example.com/data.json",
+        "https://example.com/"  # Regular web pages are also supported
     ],
-    'sitemap_url': "https://example.com/sitemap.xml"
+    # 'sitemap_url': "https://example.com/sitemap.xml"
 }
 
 # Create KB builder
@@ -83,16 +85,18 @@ kbb.build_kb(sources=sources, output_file="final_knowledge_base.md")
 Example `sources.json` file:
 ```json
 {
-  "pdf_urls": [
+  "files": [
     "https://example.com/document.pdf",
-    "file:///path/to/local/document.pdf"
-  ],
-  "web_urls": [
+    "file:///path/to/local/document.docx",
+    "https://example.com/data.xlsx", 
+    "https://example.com/api-docs.json",
     "https://example.com/page1.html"
   ],
   "sitemap_url": "https://example.com/sitemap.xml"
 }
 ```
+
+> **Note**: The legacy format with separate lists (`pdf_urls`, `web_urls`, etc.) is still supported for backward compatibility, but the new unified `files` approach is recommended.
 
 ---
 
@@ -118,13 +122,15 @@ Example `sources.json` file:
 
 ## 🔧 Supported Sources
 
-| Source     | Description                                       | Toggle |
-|------------|---------------------------------------------------|--------|
-| PDFs       | Local or HTTP/HTTPS links                         | ✅     |
-| Websites   | All URLs found via XML sitemap                    | ✅     |
-| GitHub     | Markdown files from your public repositories      | ✅     |
+| Source Type | Description | Formats |
+|-------------|-------------|---------|
+| Documents | Text documents | PDF, DOCX, TXT, MD, RTF |
+| Spreadsheets | Tabular data | CSV, TSV, XLSX, ODS |
+| Web Content | Structured web data | HTML, XML, JSON, YAML/YML |
+| Websites | Live web pages | Any URL or sitemap |
+| GitHub | Repository content | Markdown files from public repos |
 
-To enable GitHub ingestion, uncomment the corresponding code in `main()`.
+> All sources can now be added through the unified `files` parameter, with automatic format detection.
 
 ---
 
@@ -140,7 +146,12 @@ To enable GitHub ingestion, uncomment the corresponding code in `main()`.
 ### Basic Usage
 Run the main script to process all configured sources:
 ```bash
-python construct_kb.py
+python -m knowledge_base_builder.cli --file "https://example.com/document.pdf" --file "file:///path/to/document.docx" --output kb.md
+```
+
+Or use a sources file:
+```bash
+python -m knowledge_base_builder.cli --sources-file sources.json --output kb.md
 ```
 
 ---
@@ -170,7 +181,9 @@ python construct_kb.py
 
 ## 🧪 TODOs & Enhancements
 
-- [ ] Add support for other document types (.docx, .xlsx)
+- [x] Add support for other document types (.docx, .txt, .md, .rtf)
+- [x] Add support for spreadsheet data (.csv, .tsv, .xlsx, .ods) 
+- [x] Add support for web content formats (.html, .xml, .json, .yaml)
 - [ ] Add support for other data sources (Google Drive, LinkedIn)
 - [ ] Add support for other large language models (GPT4o, Claude 3.7)
 - [ ] Support knowledge base to vector DB (e.g., Pinecone, Chroma)

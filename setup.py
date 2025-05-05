@@ -28,6 +28,17 @@ setup(
         "python-dotenv>=1.0.0",
         "lxml>=4.9.3",
         "pypdf>=3.17.0",
+        # New dependencies for document processors
+        "python-docx>=0.8.11",  # For .docx files
+        "markdown>=3.4.3",      # For .md files
+        "mistune>=2.0.5",       # Alternative Markdown parser
+        "striprtf>=0.0.22",     # For .rtf files
+        # New dependencies for spreadsheet processors
+        "pandas>=2.0.0",        # For tabular data processing
+        "openpyxl>=3.1.2",      # For .xlsx files
+        "ezodf>=0.3.2",         # For .ods files
+        # New dependencies for web content processors
+        "pyyaml>=6.0",          # For .yaml/.yml files
     ],
     entry_points={
         "console_scripts": [

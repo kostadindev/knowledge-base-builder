@@ -32,11 +32,22 @@ def main():
     parser.add_argument("--github-api-key", 
                       help="GitHub API Key (default: from GITHUB_API_KEY env var)")
     
-    # Sources
+    # Sources - New unified approach
+    parser.add_argument("--file", "-f", action="append", default=[],
+                      help="File URL or local file path (any supported format) (can be used multiple times)")
+    
+    # Sources - Legacy support
     parser.add_argument("--pdf", "-p", action="append", default=[],
-                      help="PDF URLs or local file paths (can be used multiple times)")
+                      help="[Legacy] PDF URLs or local file paths")
+    parser.add_argument("--document", "-d", action="append", default=[],
+                      help="[Legacy] Document URLs or local file paths (.docx, .txt, .md, .rtf)")
+    parser.add_argument("--spreadsheet", "-sp", action="append", default=[],
+                      help="[Legacy] Spreadsheet URLs or local file paths (.csv, .tsv, .xlsx, .ods)")
+    parser.add_argument("--web-content", "-wc", action="append", default=[],
+                      help="[Legacy] Web content URLs or local file paths (.html, .xml, .json, .yaml, .yml)")
     parser.add_argument("--web", "-w", action="append", default=[],
-                      help="Web URLs to process (can be used multiple times)")
+                      help="[Legacy] Web URLs to process")
+    
     parser.add_argument("--sitemap", "-s", 
                       help="Sitemap URL to process all contained URLs")
     parser.add_argument("--sources-file", 
@@ -60,7 +71,14 @@ def main():
     
     # Build sources configuration
     sources = {
+        # New unified approach
+        'files': args.file,
+        
+        # Legacy support
         'pdf_urls': args.pdf,
+        'document_urls': args.document,
+        'spreadsheet_urls': args.spreadsheet,
+        'web_content_urls': args.web_content,
         'web_urls': args.web,
         'sitemap_url': args.sitemap,
     }
@@ -71,12 +89,14 @@ def main():
             with open(args.sources_file, 'r') as file:
                 file_sources = json.load(file)
                 
-                # Merge sources from file with command line sources
-                if 'pdf_urls' in file_sources and file_sources['pdf_urls']:
-                    sources['pdf_urls'].extend(file_sources['pdf_urls'])
+                # Process unified files list
+                if 'files' in file_sources and file_sources['files']:
+                    sources['files'].extend(file_sources['files'])
                 
-                if 'web_urls' in file_sources and file_sources['web_urls']:
-                    sources['web_urls'].extend(file_sources['web_urls'])
+                # Legacy format support
+                for key in ['pdf_urls', 'document_urls', 'spreadsheet_urls', 'web_content_urls', 'web_urls']:
+                    if key in file_sources and file_sources[key]:
+                        sources[key].extend(file_sources[key])
                 
                 if 'sitemap_url' in file_sources and file_sources['sitemap_url'] and not sources['sitemap_url']:
                     sources['sitemap_url'] = file_sources['sitemap_url']
@@ -84,8 +104,18 @@ def main():
             print(f"Error loading sources file: {e}")
     
     # Validate that we have at least one source
-    if not sources['pdf_urls'] and not sources['web_urls'] and not sources['sitemap_url']:
-        parser.error("No sources provided. Use --pdf, --web, --sitemap, or --sources-file.")
+    has_sources = (
+        sources['files'] or
+        sources['pdf_urls'] or
+        sources['document_urls'] or
+        sources['spreadsheet_urls'] or
+        sources['web_content_urls'] or
+        sources['web_urls'] or
+        sources['sitemap_url']
+    )
+    
+    if not has_sources:
+        parser.error("No sources provided. Use --file, --sitemap, or --sources-file.")
         return
     
     # Create KB builder

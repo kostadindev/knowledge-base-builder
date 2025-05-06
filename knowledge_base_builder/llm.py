@@ -15,7 +15,7 @@ class LLM:
         """Build a single KB chunk synchronously."""
         start_time = time.time()
         prompt = (
-            "You're a helpful assistant.\n\n"
+            "You're a knowledge base builder.\n\n"
             "Turn the following document into a structured **Markdown knowledge base** "
             "with summaries, bullet points, and clearly formatted sections.\n\n"
             f"---DOCUMENT START---\n{text}\n---DOCUMENT END---\n\n"

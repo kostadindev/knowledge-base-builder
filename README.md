@@ -21,7 +21,7 @@ Python package to transform diverse content into a powerful, structured knowledg
 ### Install from PyPI
 
 ```bash
-pip install knowledge-base-builder
+pip install kbb
 ```
 
 ### Install from Source

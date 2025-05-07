@@ -21,7 +21,7 @@ Python package to transform diverse content into a powerful, structured knowledg
 ### Install from PyPI
 
 ```bash
-pip install kbb
+pip install knowledge-base-builder
 ```
 
 ### Install from Source
@@ -120,8 +120,6 @@ kbb.build(sources=sources, output_file="final_knowledge_base.md")
 | Web Content | Structured web data | HTML, XML, JSON, YAML/YML |
 | Websites | Live web pages | Any URL or sitemap |
 | GitHub | Repository content | Markdown files from public repos |
-
-> All sources can now be added through the unified `files` parameter, with automatic format detection.
 
 ---
 
@@ -257,7 +255,6 @@ final_kb = await merge_all_kbs(preprocessed_kbs)
 ```
 - Preprocesses all documents concurrently
 - Merges them into a final knowledge base
-- Optimizes both speed and memory usage
 
 ### Performance Considerations
 - **Resource Management**: CPU-bound operations don't block the event loop
@@ -318,17 +315,17 @@ final_kb = await merge_all_kbs(preprocessed_kbs)
 - [ ] **Custom Taxonomies**: Allow users to define custom categorization schemas for content organization
 
 ### Performance & Limitations Improvements
-- [ ] **Memory Optimization**:
+- **Memory Optimization**:
   - [ ] Implement streaming document processing to reduce memory footprint
   - [ ] Add chunking for documents exceeding context windows
   - [ ] Develop smart caching system for processed documents
   - [ ] Add memory usage monitoring and automatic batch sizing
 
-- [ ] **Processing Speed**:
+- **Processing Speed**:
   - [ ] Implement progressive document loading
   - [ ] Develop smart retry mechanisms for failed operations
 
-- [ ] **Rate Limit Management**:
+- **Rate Limit Management**:
   - [ ] Add automatic rate limit detection and adaptation
   - [ ] Implement smart queuing system for API calls
   - [ ] Add support for multiple API keys rotation

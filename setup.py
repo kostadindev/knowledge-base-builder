@@ -4,19 +4,32 @@ with open("README.md", "r", encoding="utf-8") as f:
     long_description = f.read()
 
 setup(
-    name="kbb",
+    name="knowledge-base-builder",
     version="0.1.2",
     author="Kostadin Devedzhiev",
     author_email="kostadin.g.devedzhiev@gmail.com", 
-    description="Build knowledge bases from multiple sources using large language models",
+    description="🚀 Builds a structured markdown knowledge base from external sources such as websites, documents, and GitHub repos with large language models. Ideal for RAG, SEO-friendly LLM contexts (/llms.txt), and chatbots.",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/kostadindev/knowledge-base-builder",
+    project_urls={
+        "Homepage": "https://github.com/kostadindev/knowledge-base-builder",
+        "Documentation": "https://github.com/kostadindev/knowledge-base-builder#readme",
+    },
     packages=find_packages(),
     classifiers=[
+        "Development Status :: 4 - Beta",
+        "Intended Audience :: Developers",
         "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
+        "Topic :: Software Development :: Libraries :: Python Modules",
+        "Topic :: Documentation",
+        "Topic :: Text Processing :: Markup",
     ],
     python_requires=">=3.8",
     install_requires=[
@@ -39,8 +52,6 @@ setup(
         "ezodf>=0.3.2",         # For .ods files
         # New dependencies for web content processors
         "pyyaml>=6.0",          # For .yaml/.yml files
-        # LinkedIn API client
-        "linkedin-api>=2.0.0",  # For LinkedIn API access
     ],
     entry_points={
         "console_scripts": [

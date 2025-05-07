@@ -14,6 +14,7 @@ from knowledge_base_builder.openai_client import OpenAIClient
 from knowledge_base_builder.anthropic_client import AnthropicClient
 from knowledge_base_builder.llm import LLM
 from knowledge_base_builder.kb_builder import KBBuilder
+from knowledge_base_builder.base_processor import BaseProcessor
 from knowledge_base_builder.pdf_processor import PDFProcessor
 from knowledge_base_builder.document_processor import DocumentProcessor
 from knowledge_base_builder.spreadsheet_processor import SpreadsheetProcessor
@@ -28,6 +29,7 @@ __all__ = [
     'AnthropicClient',
     'LLM',
     'KBBuilder',
+    'BaseProcessor',
     'PDFProcessor',
     'DocumentProcessor',
     'SpreadsheetProcessor',

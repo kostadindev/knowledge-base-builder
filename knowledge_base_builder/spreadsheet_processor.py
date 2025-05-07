@@ -6,70 +6,17 @@ import pandas as pd
 import re
 import ezodf
 from io import StringIO
+from knowledge_base_builder.base_processor import BaseProcessor
 
-class SpreadsheetProcessor:
+class SpreadsheetProcessor(BaseProcessor):
     """Handle spreadsheet processing for .csv, .tsv, .xlsx, and .ods files."""
+    
+    SUPPORTED_EXTENSIONS = ['.csv', '.tsv', '.xlsx', '.ods']
     
     @staticmethod
     def download(url: str) -> str:
         """Download a spreadsheet from a URL or load from local file."""
-        if url.startswith("file://"):
-            parsed = urllib.parse.urlparse(url)
-            local_path = urllib.parse.unquote(parsed.path)
-            
-            # Handle path differences between Windows and Mac/Linux
-            if os.name == 'nt':  # Windows
-                # For Windows paths with drive letters (like C:/)
-                if local_path.startswith('/') and len(local_path) > 1:
-                    # Remove the leading slash before the drive letter
-                    if local_path[1].isalpha() and local_path[2] == ':':
-                        local_path = local_path[1:]
-                    else:
-                        local_path = local_path.lstrip('/')
-            else:  # Mac/Linux - ensure path starts with /
-                if not local_path.startswith('/'):
-                    local_path = '/' + local_path
-            
-            # Replace any remaining URL encodings (like %20 for spaces)
-            local_path = urllib.parse.unquote(local_path)
-                    
-            if not os.path.exists(local_path):
-                raise FileNotFoundError(f"Local file not found: {local_path}")
-            return local_path
-        else:
-            response = requests.get(url)
-            if response.status_code != 200:
-                raise Exception(f"Failed to download spreadsheet from {url}")
-            
-            # Parse the filename from URL or headers
-            filename = url.split('/')[-1].split('?')[0]
-            content_disposition = response.headers.get('content-disposition')
-            if content_disposition:
-                cd_match = re.findall('filename="(.+?)"', content_disposition)
-                if cd_match:
-                    filename = cd_match[0]
-            
-            # Ensure we have the correct file extension
-            if not any(filename.lower().endswith(ext) for ext in ['.csv', '.tsv', '.xlsx', '.ods']):
-                # Try to guess from content-type
-                content_type = response.headers.get('content-type', '')
-                if 'text/csv' in content_type:
-                    filename = filename + '.csv'
-                elif 'text/tab-separated-values' in content_type:
-                    filename = filename + '.tsv'
-                elif 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' in content_type:
-                    filename = filename + '.xlsx'
-                elif 'application/vnd.oasis.opendocument.spreadsheet' in content_type:
-                    filename = filename + '.ods'
-                else:
-                    # Default to .csv if we can't determine
-                    filename = filename + '.csv'
-            
-            # Create temporary file with the correct extension
-            temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=os.path.splitext(filename)[1])
-            temp_file.write(response.content)
-            temp_file.close()
-            return temp_file.name
+        return BaseProcessor.download(url, SpreadsheetProcessor.SUPPORTED_EXTENSIONS)
 
     @staticmethod
     def extract_text(file_path: str) -> str:

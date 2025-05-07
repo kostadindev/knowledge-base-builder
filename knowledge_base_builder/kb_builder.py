@@ -77,6 +77,8 @@ class KBBuilder:
             asyncio.get_event_loop().run_until_complete(self.process_files_async(files))
             files_end_time = time.time()
             print(f"⏱️ Files processing completed in {files_end_time - files_start_time:.2f} seconds")
+        else:
+            print("ℹ️ No files provided for processing")
             
         legacy_start_time = time.time()
         self._process_legacy_sources(sources)
@@ -353,6 +355,25 @@ class KBBuilder:
                 self._process_web_url(url)
             except Exception as e:
                 print(f"❌ Website error: {e}")
+
+    def _process_web_url(self, url: str) -> None:
+        """Process a web URL synchronously."""
+        print(f"🔗 Website: {url}")
+        start_time = time.time()
+        
+        download_start = time.time()
+        text = self.website_processor.download_and_clean_html(url)
+        download_end = time.time()
+        print(f"  ⏱️ Download and clean: {download_end - download_start:.2f} seconds")
+        
+        if text.strip():
+            kb_start = time.time()
+            self.kbs.append(self.llm.build(text))
+            kb_end = time.time()
+            print(f"  ⏱️ KB building: {kb_end - kb_start:.2f} seconds")
+        
+        end_time = time.time()
+        print(f"  ⏱️ Total website processing: {end_time - start_time:.2f} seconds")
 
     def process_websites(self, sitemap_url: str) -> None:
         """Process and build knowledge bases from websites."""

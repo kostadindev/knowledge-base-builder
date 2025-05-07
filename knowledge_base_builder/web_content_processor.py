@@ -7,85 +7,17 @@ import json
 import yaml
 import xml.etree.ElementTree as ET
 from bs4 import BeautifulSoup
+from knowledge_base_builder.base_processor import BaseProcessor
 
-class WebContentProcessor:
+class WebContentProcessor(BaseProcessor):
     """Handle web content processing for .html, .xml, .json, and .yaml/.yml files."""
+    
+    SUPPORTED_EXTENSIONS = ['.html', '.xml', '.json', '.yaml', '.yml']
     
     @staticmethod
     def download(url: str) -> str:
         """Download web content from a URL or load from local file."""
-        if url.startswith("file://"):
-            parsed = urllib.parse.urlparse(url)
-            local_path = urllib.parse.unquote(parsed.path)
-            
-            # Handle path differences between Windows and Mac/Linux
-            if os.name == 'nt':  # Windows
-                # For Windows paths with drive letters (like C:/)
-                if local_path.startswith('/') and len(local_path) > 1:
-                    # Remove the leading slash before the drive letter
-                    if local_path[1].isalpha() and local_path[2] == ':':
-                        local_path = local_path[1:]
-                    else:
-                        local_path = local_path.lstrip('/')
-            else:  # Mac/Linux - ensure path starts with /
-                if not local_path.startswith('/'):
-                    local_path = '/' + local_path
-            
-            # Replace any remaining URL encodings (like %20 for spaces)
-            local_path = urllib.parse.unquote(local_path)
-                    
-            if not os.path.exists(local_path):
-                raise FileNotFoundError(f"Local file not found: {local_path}")
-            return local_path
-        else:
-            response = requests.get(url)
-            if response.status_code != 200:
-                raise Exception(f"Failed to download web content from {url}")
-            
-            # Parse the filename from URL or headers
-            filename = url.split('/')[-1].split('?')[0]
-            content_disposition = response.headers.get('content-disposition')
-            if content_disposition:
-                cd_match = re.findall('filename="(.+?)"', content_disposition)
-                if cd_match:
-                    filename = cd_match[0]
-            
-            # Ensure we have the correct file extension
-            if not any(filename.lower().endswith(ext) for ext in ['.html', '.xml', '.json', '.yaml', '.yml']):
-                # Try to guess from content-type
-                content_type = response.headers.get('content-type', '')
-                if 'text/html' in content_type:
-                    filename = filename + '.html'
-                elif 'application/xml' in content_type or 'text/xml' in content_type:
-                    filename = filename + '.xml'
-                elif 'application/json' in content_type:
-                    filename = filename + '.json'
-                elif 'application/yaml' in content_type or 'text/yaml' in content_type:
-                    filename = filename + '.yaml'
-                else:
-                    # Attempt to detect format from content
-                    content = response.text
-                    if content.strip().startswith(('<', '<!', '<?')):
-                        # Likely HTML or XML
-                        if '<html' in content.lower():
-                            filename = filename + '.html'
-                        else:
-                            filename = filename + '.xml'
-                    elif content.strip().startswith('{') and content.strip().endswith('}'):
-                        # Likely JSON
-                        filename = filename + '.json'
-                    elif ':' in content and '\n' in content:
-                        # Possibly YAML
-                        filename = filename + '.yaml'
-                    else:
-                        # Default to HTML
-                        filename = filename + '.html'
-            
-            # Create temporary file with the correct extension
-            temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=os.path.splitext(filename)[1])
-            temp_file.write(response.content)
-            temp_file.close()
-            return temp_file.name
+        return BaseProcessor.download(url, WebContentProcessor.SUPPORTED_EXTENSIONS)
 
     @staticmethod
     def extract_text(file_path: str) -> str:
@@ -175,98 +107,67 @@ class WebContentProcessor:
         """Extract text from a .json file."""
         try:
             with open(file_path, 'r', encoding='utf-8', errors='replace') as file:
-                json_data = json.load(file)
+                data = json.load(file)
             
-            # Format JSON as markdown
-            markdown = ["# JSON Content\n"]
-            
-            def process_json(data, prefix="", level=0):
-                result = []
-                
-                if isinstance(data, dict):
-                    for key, value in data.items():
-                        if isinstance(value, (dict, list)) and value:
-                            result.append(f"{'#' * (level + 2)} {prefix}{key}")
-                            result.extend(process_json(value, "", level + 1))
+            # Convert JSON to a structured text representation
+            def format_json(obj, level=0):
+                if isinstance(obj, dict):
+                    result = []
+                    for key, value in obj.items():
+                        indent = '  ' * level
+                        if isinstance(value, (dict, list)):
+                            result.append(f"{indent}{key}:")
+                            result.extend(format_json(value, level + 1))
                         else:
-                            result.append(f"- **{key}**: {value}")
-                elif isinstance(data, list):
-                    for i, item in enumerate(data):
-                        if isinstance(item, (dict, list)) and item:
-                            if len(data) > 10 and i >= 5 and i < len(data) - 5:
-                                if i == 5:
-                                    result.append(f"- *... {len(data) - 10} more items ...*")
-                                continue
-                            result.append(f"### Item {i+1}")
-                            result.extend(process_json(item, "", level + 1))
+                            result.append(f"{indent}{key}: {value}")
+                    return result
+                elif isinstance(obj, list):
+                    result = []
+                    for item in obj:
+                        if isinstance(item, (dict, list)):
+                            result.extend(format_json(item, level))
                         else:
-                            result.append(f"- {item}")
+                            result.append('  ' * level + str(item))
+                    return result
                 else:
-                    result.append(str(data))
-                
-                return result
+                    return ['  ' * level + str(obj)]
             
-            formatted_text = process_json(json_data, level=1)
-            markdown.extend(formatted_text)
-            
-            return '\n'.join(markdown)
+            text_lines = format_json(data)
+            return '\n'.join(text_lines)
         except Exception as e:
-            # Fall back to raw content if parsing fails
-            try:
-                with open(file_path, 'r', encoding='utf-8', errors='replace') as file:
-                    return file.read()
-            except:
-                raise Exception(f"Error extracting text from .json file: {e}")
+            raise Exception(f"Error extracting text from .json file: {e}")
 
     @staticmethod
     def _extract_from_yaml(file_path: str) -> str:
-        """Extract text from a .yaml or .yml file."""
+        """Extract text from a .yaml/.yml file."""
         try:
             with open(file_path, 'r', encoding='utf-8', errors='replace') as file:
-                yaml_data = yaml.safe_load(file)
+                data = yaml.safe_load(file)
             
-            # Convert to JSON and use the same formatting function
-            return WebContentProcessor._format_yaml_as_markdown(yaml_data)
+            # Convert YAML to a structured text representation
+            def format_yaml(obj, level=0):
+                if isinstance(obj, dict):
+                    result = []
+                    for key, value in obj.items():
+                        indent = '  ' * level
+                        if isinstance(value, (dict, list)):
+                            result.append(f"{indent}{key}:")
+                            result.extend(format_yaml(value, level + 1))
+                        else:
+                            result.append(f"{indent}{key}: {value}")
+                    return result
+                elif isinstance(obj, list):
+                    result = []
+                    for item in obj:
+                        if isinstance(item, (dict, list)):
+                            result.extend(format_yaml(item, level))
+                        else:
+                            result.append('  ' * level + f"- {item}")
+                    return result
+                else:
+                    return ['  ' * level + str(obj)]
+            
+            text_lines = format_yaml(data)
+            return '\n'.join(text_lines)
         except Exception as e:
-            # Fall back to raw content if parsing fails
-            try:
-                with open(file_path, 'r', encoding='utf-8', errors='replace') as file:
-                    return file.read()
-            except:
-                raise Exception(f"Error extracting text from YAML file: {e}")
-    
-    @staticmethod
-    def _format_yaml_as_markdown(data, level=1):
-        """Format YAML data as markdown."""
-        markdown = ["# YAML Content\n"]
-        
-        def process_yaml(data, prefix="", level=0):
-            result = []
-            
-            if isinstance(data, dict):
-                for key, value in data.items():
-                    if isinstance(value, (dict, list)) and value:
-                        result.append(f"{'#' * (level + 2)} {prefix}{key}")
-                        result.extend(process_yaml(value, "", level + 1))
-                    else:
-                        result.append(f"- **{key}**: {value}")
-            elif isinstance(data, list):
-                for i, item in enumerate(data):
-                    if isinstance(item, (dict, list)) and item:
-                        if len(data) > 10 and i >= 5 and i < len(data) - 5:
-                            if i == 5:
-                                result.append(f"- *... {len(data) - 10} more items ...*")
-                            continue
-                        result.append(f"### Item {i+1}")
-                        result.extend(process_yaml(item, "", level + 1))
-                    else:
-                        result.append(f"- {item}")
-            else:
-                result.append(str(data))
-            
-            return result
-        
-        formatted_text = process_yaml(data, level=level)
-        markdown.extend(formatted_text)
-        
-        return '\n'.join(markdown) 
+            raise Exception(f"Error extracting text from .yaml/.yml file: {e}") 

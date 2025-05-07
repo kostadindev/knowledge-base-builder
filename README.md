@@ -213,7 +213,89 @@ This approach provides several advantages:
 
 ---
 
-## 🧪 Upcoming Enhancements
+## ⚡ Concurrency Model
+
+The knowledge base builder implements a multi-layer concurrency model to maximize performance while maintaining stability:
+
+### 1. File Processing Concurrency
+```python
+# Multiple files processed simultaneously
+tasks = [process_file_async(file) for file in files]
+await asyncio.gather(*tasks)
+```
+- Enables parallel processing of multiple files
+- Each file type (PDF, DOCX, web page, etc.) is processed independently
+- Significantly reduces total processing time for multiple files
+
+### 2. CPU-Bound Operations
+```python
+# CPU-intensive operations run in separate threads
+path = await asyncio.to_thread(processor.download, url)
+text = await asyncio.to_thread(processor.extract_text, path)
+```
+- Downloads and text extraction run in separate threads
+- Prevents blocking the event loop during I/O operations
+- Optimizes CPU utilization across cores
+
+### 3. LLM Processing Concurrency
+```python
+# Controlled concurrent LLM API calls
+async with self._sem:
+    result = await self.llm_client.run_async(prompt)
+```
+- Uses a semaphore to limit concurrent LLM API calls
+- Prevents overwhelming the LLM API
+- Helps stay within API rate limits
+- Default concurrency limit: 8 simultaneous requests
+
+### 4. Final KB Merging
+```python
+# Concurrent preprocessing followed by single merge
+tasks = [preprocess_text_async(text) for text in texts]
+preprocessed_kbs = await asyncio.gather(*tasks)
+final_kb = await merge_all_kbs(preprocessed_kbs)
+```
+- Preprocesses all documents concurrently
+- Merges them into a final knowledge base
+- Optimizes both speed and memory usage
+
+### Performance Considerations
+- **Resource Management**: CPU-bound operations don't block the event loop
+- **Rate Limiting**: LLM API calls are properly throttled
+- **Scalability**: System can handle many files without performance degradation
+- **Constraints**:
+  - LLM concurrency limit (default: 8)
+  - System resources (CPU, memory, network)
+  - LLM API rate limits
+
+---
+
+## ⚠️ Limitations
+
+### Memory Usage
+- **Document Processing**: Each document is loaded into memory during processing
+- **LLM Context Windows**: Different models have different context window limits:
+  - Gemini: 1M tokens
+- **Merge Operations**: Final merge operation requires all preprocessed KBs in memory
+- **Recommendation**: Monitor memory usage when processing large documents or many files
+
+### Processing Time
+- **I/O Operations**: Each file requires multiple I/O operations:
+  - Downloading/reading the file
+  - Text extraction
+  - LLM API calls
+- **LLM Latency**: Each document requires at least one LLM call:
+  - One call per document for preprocessing
+  - One final call for merging
+
+### Rate Limits
+- **LLM API Limits**: Each provider has different rate limits
+- **GitHub API**: 60 requests per hour (unauthenticated)
+- **Web Scraping**: Some websites may block rapid requests
+
+---
+
+## 🧪 Future Improvements
 
 ### Data Sources Expansion
 - [ ] **Cloud Integration**: Add support for Google Drive, Dropbox, and OneDrive documents
@@ -234,6 +316,23 @@ This approach provides several advantages:
 - [ ] **Incremental Updates**: Support for updating existing knowledge bases with new content
 - [ ] **Multi-language Support**: Process and merge content across different languages
 - [ ] **Custom Taxonomies**: Allow users to define custom categorization schemas for content organization
+
+### Performance & Limitations Improvements
+- [ ] **Memory Optimization**:
+  - [ ] Implement streaming document processing to reduce memory footprint
+  - [ ] Add chunking for documents exceeding context windows
+  - [ ] Develop smart caching system for processed documents
+  - [ ] Add memory usage monitoring and automatic batch sizing
+
+- [ ] **Processing Speed**:
+  - [ ] Implement progressive document loading
+  - [ ] Develop smart retry mechanisms for failed operations
+
+- [ ] **Rate Limit Management**:
+  - [ ] Add automatic rate limit detection and adaptation
+  - [ ] Implement smart queuing system for API calls
+  - [ ] Add support for multiple API keys rotation
+
 
 ---
 

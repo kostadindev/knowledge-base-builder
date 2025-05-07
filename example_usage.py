@@ -34,16 +34,16 @@ def main():
         ],
         
         # Process all pages from a sitemap
-        # 'sitemap_url': "https://kostadindev.github.io/sitemap.xml",
+        'sitemap_url': "https://kostadindev.github.io/sitemap.xml",
         
         # # GitHub repositories to process (format: username/repo or full URL)
-        # 'github_repositories': [
-        #     "https://github.com/kostadindev/Knowledge-Base-Builder",
-        #     "https://github.com/kostadindev/GONEXT",
-        #     "https://github.com/kostadindev/Recursive-QA",
-        #     "https://github.com/kostadindev/deep-gestures",
-        #     "https://github.com/kostadindev/emf-ellipse"
-        # ]
+        'github_repositories': [
+            "https://github.com/kostadindev/Knowledge-Base-Builder",
+            "https://github.com/kostadindev/GONEXT",
+            "https://github.com/kostadindev/Recursive-QA",
+            "https://github.com/kostadindev/deep-gestures",
+            "https://github.com/kostadindev/emf-ellipse"
+        ]
     }
     
     print("Starting knowledge base creation with the following sources:")

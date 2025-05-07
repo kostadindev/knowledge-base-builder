@@ -336,6 +336,16 @@ final_kb = await merge_all_kbs(preprocessed_kbs)
 
 ---
 
+## 🤝 Contributing
+
+We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.md) for details on how to get started.
+
+## 🐛 Bug Reports
+
+Found a bug? Please check our [Contributing Guidelines](CONTRIBUTING.md#bug-reports) for instructions on how to report it.
+
+---
+
 ## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

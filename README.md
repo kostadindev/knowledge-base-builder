@@ -52,7 +52,7 @@ GOOGLE_API_KEY=your_google_api_key_here
 OPENAI_API_KEY=your_openai_api_key_here
 ANTHROPIC_API_KEY=your_anthropic_api_key_here
 
-# Optional if you want to include Github repositories with a high rate limit
+# Optional if you want to include Github repositories with a higher rate limit
 GITHUB_API_KEY=your_github_api_key_here 
 ```
 
@@ -178,6 +178,19 @@ kbb.build(sources=sources, output_file="final_knowledge_base.md")
 - **Single-Context LLM Applications**: Provide a comprehensive knowledge base that fits within a single LLM context window (up to 128K tokens) for domain-specific assistants.
 - **Hybrid RAG Systems**: Combine the full knowledge base with selective vector retrieval for specialized question answering systems with reduced hallucination.
 
+### Summarization
+- **Website Summarization**: Process entire websites via sitemap URLs
+- **GitHub Summarization**: Generate summaries of GitHub repositories or entire user profiles
+- **Document Summarization**: Combine multiple documents into a unified summary
+
+```python
+sources = {
+    'sitemap_url': "https://kostadindev.github.io/sitemap.xml",  # Summarize entire website
+    'github_username': "kostadindev",  # Summarize all repos for a user
+    'files': ["document1.pdf", "document2.docx"]  # Summarize documents
+}
+```
+
 ### Personal Knowledge Management
 - **Professional Portfolio**: Create a comprehensive knowledge base integrating your resume, publications, projects, and online presence into a single searchable document.
 - **Academic Research**: Compile research papers, conference proceedings, and citations into a structured knowledge base for literature reviews or thesis preparation.
@@ -290,7 +303,7 @@ final_kb = await merge_all_kbs(preprocessed_kbs)
 
 ### Rate Limits
 - **LLM API Limits**: Each provider has different rate limits
-- **GitHub API**: 60 requests per hour (unauthenticated)
+- **GitHub API**: low when unauthenticated
 - **Web Scraping**: Some websites may block rapid requests
 
 ---

@@ -24,30 +24,32 @@ def main():
     
     # Example source documents using the new unified 'files' approach
     sources = {
-        # Unified files list - automatically detects and processes each file type
+        # # Unified files list - automatically detects and processes each file type
         'files': [
             "https://kostadindev.github.io/projects.html",
-            "C:/Users/kosta/Untitled Folder/Knowledge-Base-Builder/test_files/csms-checklist-revised-March-2024 (2).xlsx",
-            "C:/Users/kosta/Untitled Folder/Knowledge-Base-Builder/test_files/random_data.csv",
-            "C:/Users/kosta/Untitled Folder/Knowledge-Base-Builder/test_files/CV_2024.docx",
-            "C:/Users/kosta/Untitled Folder/Knowledge-Base-Builder/test_files/emf-ellipse-publication.pdf"
+        #     "C:/Users/kosta/Untitled Folder/Knowledge-Base-Builder/test_files/csms-checklist-revised-March-2024 (2).xlsx",
+        #     "C:/Users/kosta/Untitled Folder/Knowledge-Base-Builder/test_files/random_data.csv",
+        #     "C:/Users/kosta/Untitled Folder/Knowledge-Base-Builder/test_files/CV_2024.docx",
+        #     "C:/Users/kosta/Untitled Folder/Knowledge-Base-Builder/test_files/emf-ellipse-publication.pdf"
         ],
         
         # Process all pages from a sitemap
         'sitemap_url': "https://kostadindev.github.io/sitemap.xml",
         
-        # # GitHub repositories to process (format: username/repo or full URL)
+        # # # GitHub repositories to process (format: username/repo or full URL)
         'github_repositories': [
             "https://github.com/kostadindev/Knowledge-Base-Builder",
             "https://github.com/kostadindev/GONEXT",
             "https://github.com/kostadindev/Recursive-QA",
             "https://github.com/kostadindev/deep-gestures",
-            "https://github.com/kostadindev/emf-ellipse"
-        ]
+            "https://github.com/kostadindev/emf-ellipse",
+            "https://github.com/kostadindev"
+        ],
+        # 'github_username': "kostadindev" # Process all repositories for a specific username
     }
     
     print("Starting knowledge base creation with the following sources:")
-    print(f"- {len(sources['files'])} files/URLs")
+    print(f"- {len(sources['files'] if 'files' in sources else [])} files/URLs")
     print(f"- Sitemap: {sources.get('sitemap_url', 'None')}")
     print(f"- GitHub Repositories: {len(sources.get('github_repositories', []))}")
     print(f"Output will be saved to: knowledge_base.md")

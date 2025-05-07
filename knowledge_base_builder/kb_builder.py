@@ -91,12 +91,21 @@ class KBBuilder:
             sitemap_end_time = time.time()
             print(f"⏱️ Sitemap processing completed in {sitemap_end_time - sitemap_start_time:.2f} seconds")
             
+        # Handle GitHub repositories
         github_repos = sources.get('github_repositories', [])
-        if github_repos:
+        github_username = sources.get('github_username')
+        
+        if github_username:
+            print(f"👤 Processing all repositories for GitHub user: {github_username}")
+            github_start_time = time.time()
+            self.process_github(github_username)
+            github_end_time = time.time()
+            print(f"⏱️ GitHub user processing completed in {github_end_time - github_start_time:.2f} seconds")
+        elif github_repos:
             github_start_time = time.time()
             self.process_github_repos(github_repos)
             github_end_time = time.time()
-            print(f"⏱️ GitHub processing completed in {github_end_time - github_start_time:.2f} seconds")
+            print(f"⏱️ GitHub repositories processing completed in {github_end_time - github_start_time:.2f} seconds")
 
         # now do async merge & write file
         print("🔀 Merging all knowledge bases asynchronously...")

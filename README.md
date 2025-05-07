@@ -63,8 +63,7 @@ load_dotenv()
 
 # API and model configuration
 config = {
-    'LLM_PROVIDER': 'gemini',  # Choose: 'gemini', 'openai', or 'anthropic'
-    'GOOGLE_API_KEY': os.getenv("GOOGLE_API_KEY"),     # For Gemini
+    'GOOGLE_API_KEY': os.getenv("GOOGLE_API_KEY"),     # For Gemini | Get Free API Key at https://aistudio.google.com/app/apikey
     'OPENAI_API_KEY': os.getenv("OPENAI_API_KEY"),     # For GPT-4o
     'ANTHROPIC_API_KEY': os.getenv("ANTHROPIC_API_KEY"), # For Claude
 }
@@ -130,9 +129,13 @@ kbb.build(sources=sources, output_file="final_knowledge_base.md")
 
 | Provider | Models | Features |
 |----------|--------|----------|
-| Google Gemini | gemini-2.0-flash (default) | Fast, cost-effective summaries |
+| Google Gemini | gemini-2.0-flash (default) | Free to try, Fast, large context window cost-effective summaries |
 | OpenAI | gpt-4o (default) | High-quality summaries, strong reasoning |
 | Anthropic | claude-3-7-sonnet (default) | High-quality summaries, excellent formatting |
+
+> **Recommended Provider: Google Gemini**
+> 
+> Google Gemini is the recommended provider as a free development API key can be obtained. Additionally, it is fast, has a large context window, and performs well on benchmarks. Get your free API key at [Google AI Studio](https://aistudio.google.com/app/apikey).
 
 ---
 
@@ -185,11 +188,30 @@ kbb.build(sources=sources, output_file="final_knowledge_base.md")
 - **Onboarding Acceleration**: Create personalized knowledge bases for new employees containing company policies, codebase documentation, and team information.
 
 ---
-## 🌲 Merge Tree Algorithm
+## 🌲 Algorithm
 
-![image](https://github.com/user-attachments/assets/421822bc-026a-4dfa-af74-79d0ffbc35b9)
+The knowledge base builder uses a two-step approach for efficient processing:
 
+1. **Parallel Preprocessing**
+   - All documents are preprocessed concurrently into structured KBs
+   - Uses a semaphore to limit concurrent LLM requests
+   - Each document is converted into a well-formatted Markdown knowledge base
+   - Optimized for parallel processing with controlled concurrency
 
+2. **Single Merge**
+   - All preprocessed KBs are merged in a single operation
+   - Maintains logical structure and organization
+   - Reduces total LLM calls compared to recursive approaches
+   - More predictable memory usage
+
+This approach provides several advantages:
+- Fewer total LLM calls (one per document + one final merge)
+- Better parallelization of preprocessing
+- More predictable memory usage
+- Simpler and more maintainable code
+- Faster overall processing time
+
+---
 
 ## 🧪 Upcoming Enhancements
 

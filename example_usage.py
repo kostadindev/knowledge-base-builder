@@ -21,45 +21,29 @@ def main():
         'GITHUB_API_KEY': os.getenv("GITHUB_API_KEY"), # Optional
     }
     
-    # Ensure the Google API key is available
-    if not config['GOOGLE_API_KEY']:
-        print("Error: GOOGLE_API_KEY environment variable is required.")
-        print("Please set it in your .env file or environment.")
-        return
     
     # Example source documents using the new unified 'files' approach
     sources = {
         # Unified files list - automatically detects and processes each file type
         'files': [
-            # PDF documents - remote
-            "https://kostadindev.github.io/static/documents/cv.pdf",
-            "https://kostadindev.github.io/static/documents/sbu_transcript.pdf",
-            # Local file path (no need for file:/// prefix)
-            "C:/Users/kosta/OneDrive/Desktop/MS Application Materials/emf-ellipse-publication.pdf",
-            
-            # Web pages
-            "https://kostadindev.github.io/index.html",
             "https://kostadindev.github.io/projects.html",
-            
-            # Add other file types as needed
-            # "https://example.com/data.csv",
-            # "path/to/local/document.docx",  # Relative local path example
-            # "https://example.com/api-docs.json",
+            "C:/Users/kosta/Untitled Folder/Knowledge-Base-Builder/test_files/csms-checklist-revised-March-2024 (2).xlsx",
+            "C:/Users/kosta/Untitled Folder/Knowledge-Base-Builder/test_files/random_data.csv",
+            "C:/Users/kosta/Untitled Folder/Knowledge-Base-Builder/test_files/CV_2024.docx",
+            "C:/Users/kosta/Untitled Folder/Knowledge-Base-Builder/test_files/emf-ellipse-publication.pdf"
         ],
         
         # Process all pages from a sitemap
         # 'sitemap_url': "https://kostadindev.github.io/sitemap.xml",
         
-        # GitHub repositories to process (format: username/repo or full URL)
-        'github_repositories': [
-            "https://github.com/kostadindev/Knowledge-Base-Builder",
-            "https://github.com/kostadindev/GONEXT",
-            "https://github.com/kostadindev/GONEXT-ML",
-            "https://github.com/kostadindev/meta-me",
-            "https://github.com/kostadindev/Recursive-QA",
-            "https://github.com/kostadindev/deep-gestures",
-            "https://github.com/kostadindev/emf-ellipse"
-        ]
+        # # GitHub repositories to process (format: username/repo or full URL)
+        # 'github_repositories': [
+        #     "https://github.com/kostadindev/Knowledge-Base-Builder",
+        #     "https://github.com/kostadindev/GONEXT",
+        #     "https://github.com/kostadindev/Recursive-QA",
+        #     "https://github.com/kostadindev/deep-gestures",
+        #     "https://github.com/kostadindev/emf-ellipse"
+        # ]
     }
     
     print("Starting knowledge base creation with the following sources:")

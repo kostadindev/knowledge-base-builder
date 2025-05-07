@@ -74,7 +74,7 @@ class KBBuilder:
         # process all your legacy or unified sources exactly as before...
         if files := sources.get('files', []):
             files_start_time = time.time()
-            self.process_files(files)
+            asyncio.get_event_loop().run_until_complete(self.process_files_async(files))
             files_end_time = time.time()
             print(f"⏱️ Files processing completed in {files_end_time - files_start_time:.2f} seconds")
             
@@ -148,8 +148,9 @@ class KBBuilder:
             print(f"🌐 Processing {len(web_urls)} individual web pages (legacy format)...")
             self.process_web_urls(web_urls)
 
-    def process_files(self, files: List[str]) -> None:
-        """Process files and URLs automatically based on their type."""
+    async def process_files_async(self, files: List[str]) -> None:
+        """Process files and URLs concurrently based on their type."""
+        tasks = []
         for url in files:
             try:
                 # Check if this is a local file path (not starting with http/https and containing a path separator)
@@ -175,134 +176,138 @@ class KBBuilder:
                                                                     '.csv', '.tsv', '.xlsx', '.ods',
                                                                     '.html', '.xml', '.json', '.yaml', '.yml']):
                     # Handle as a web URL
-                    self._process_web_url(url)
+                    tasks.append(self._process_web_url_async(url))
                 else:
                     # Handle based on file extension
                     file_ext = os.path.splitext(url)[1].lower()
                     
                     if file_ext == '.pdf':
-                        self._process_pdf(url)
+                        tasks.append(self._process_pdf_async(url))
                     elif file_ext in ['.docx', '.txt', '.md', '.rtf']:
-                        self._process_document(url)
+                        tasks.append(self._process_document_async(url))
                     elif file_ext in ['.csv', '.tsv', '.xlsx', '.ods']:
-                        self._process_spreadsheet(url)
+                        tasks.append(self._process_spreadsheet_async(url))
                     elif file_ext in ['.html', '.xml', '.json', '.yaml', '.yml']:
-                        self._process_web_content(url)
+                        tasks.append(self._process_web_content_async(url))
                     else:
                         # Try to process as a web URL if extension is unknown
-                        self._process_web_url(url)
+                        tasks.append(self._process_web_url_async(url))
             except Exception as e:
                 print(f"❌ Error processing file: {url} - {e}")
+        
+        # Wait for all tasks to complete
+        if tasks:
+            await asyncio.gather(*tasks)
 
-    def _process_pdf(self, url: str) -> None:
-        """Process a PDF file."""
+    async def _process_pdf_async(self, url: str) -> None:
+        """Process a PDF file asynchronously."""
         print(f"📄 PDF: {url}")
         start_time = time.time()
         
         download_start = time.time()
-        path = self.pdf_processor.download(url)
+        path = await asyncio.to_thread(self.pdf_processor.download, url)
         download_end = time.time()
         print(f"  ⏱️ Download: {download_end - download_start:.2f} seconds")
         
         extract_start = time.time()
-        text = self.pdf_processor.extract_text(path)
+        text = await asyncio.to_thread(self.pdf_processor.extract_text, path)
         extract_end = time.time()
         print(f"  ⏱️ Text extraction: {extract_end - extract_start:.2f} seconds")
         
         if text.strip():
             kb_start = time.time()
-            self.kbs.append(self.llm.build(text))
+            self.kbs.append(await self.llm.preprocess_text_async(text))
             kb_end = time.time()
             print(f"  ⏱️ KB building: {kb_end - kb_start:.2f} seconds")
         
         end_time = time.time()
         print(f"  ⏱️ Total PDF processing: {end_time - start_time:.2f} seconds")
 
-    def _process_document(self, url: str) -> None:
-        """Process a document file."""
+    async def _process_document_async(self, url: str) -> None:
+        """Process a document file asynchronously."""
         print(f"📝 Document: {url}")
         start_time = time.time()
         
         download_start = time.time()
-        path = self.document_processor.download(url)
+        path = await asyncio.to_thread(self.document_processor.download, url)
         download_end = time.time()
         print(f"  ⏱️ Download: {download_end - download_start:.2f} seconds")
         
         extract_start = time.time()
-        text = self.document_processor.extract_text(path)
+        text = await asyncio.to_thread(self.document_processor.extract_text, path)
         extract_end = time.time()
         print(f"  ⏱️ Text extraction: {extract_end - extract_start:.2f} seconds")
         
         if text.strip():
             kb_start = time.time()
-            self.kbs.append(self.llm.build(text))
+            self.kbs.append(await self.llm.preprocess_text_async(text))
             kb_end = time.time()
             print(f"  ⏱️ KB building: {kb_end - kb_start:.2f} seconds")
         
         end_time = time.time()
         print(f"  ⏱️ Total document processing: {end_time - start_time:.2f} seconds")
 
-    def _process_spreadsheet(self, url: str) -> None:
-        """Process a spreadsheet file."""
+    async def _process_spreadsheet_async(self, url: str) -> None:
+        """Process a spreadsheet file asynchronously."""
         print(f"📊 Spreadsheet: {url}")
         start_time = time.time()
         
         download_start = time.time()
-        path = self.spreadsheet_processor.download(url)
+        path = await asyncio.to_thread(self.spreadsheet_processor.download, url)
         download_end = time.time()
         print(f"  ⏱️ Download: {download_end - download_start:.2f} seconds")
         
         extract_start = time.time()
-        text = self.spreadsheet_processor.extract_text(path)
+        text = await asyncio.to_thread(self.spreadsheet_processor.extract_text, path)
         extract_end = time.time()
         print(f"  ⏱️ Text extraction: {extract_end - extract_start:.2f} seconds")
         
         if text.strip():
             kb_start = time.time()
-            self.kbs.append(self.llm.build(text))
+            self.kbs.append(await self.llm.preprocess_text_async(text))
             kb_end = time.time()
             print(f"  ⏱️ KB building: {kb_end - kb_start:.2f} seconds")
         
         end_time = time.time()
         print(f"  ⏱️ Total spreadsheet processing: {end_time - start_time:.2f} seconds")
 
-    def _process_web_content(self, url: str) -> None:
-        """Process a web content file."""
+    async def _process_web_content_async(self, url: str) -> None:
+        """Process a web content file asynchronously."""
         print(f"🌐 Web content: {url}")
         start_time = time.time()
         
         download_start = time.time()
-        path = self.web_content_processor.download(url)
+        path = await asyncio.to_thread(self.web_content_processor.download, url)
         download_end = time.time()
         print(f"  ⏱️ Download: {download_end - download_start:.2f} seconds")
         
         extract_start = time.time()
-        text = self.web_content_processor.extract_text(path)
+        text = await asyncio.to_thread(self.web_content_processor.extract_text, path)
         extract_end = time.time()
         print(f"  ⏱️ Text extraction: {extract_end - extract_start:.2f} seconds")
         
         if text.strip():
             kb_start = time.time()
-            self.kbs.append(self.llm.build(text))
+            self.kbs.append(await self.llm.preprocess_text_async(text))
             kb_end = time.time()
             print(f"  ⏱️ KB building: {kb_end - kb_start:.2f} seconds")
         
         end_time = time.time()
         print(f"  ⏱️ Total web content processing: {end_time - start_time:.2f} seconds")
 
-    def _process_web_url(self, url: str) -> None:
-        """Process a web URL."""
+    async def _process_web_url_async(self, url: str) -> None:
+        """Process a web URL asynchronously."""
         print(f"🔗 Website: {url}")
         start_time = time.time()
         
         download_start = time.time()
-        text = self.website_processor.download_and_clean_html(url)
+        text = await asyncio.to_thread(self.website_processor.download_and_clean_html, url)
         download_end = time.time()
         print(f"  ⏱️ Download and clean: {download_end - download_start:.2f} seconds")
         
         if text.strip():
             kb_start = time.time()
-            self.kbs.append(self.llm.build(text))
+            self.kbs.append(await self.llm.preprocess_text_async(text))
             kb_end = time.time()
             print(f"  ⏱️ KB building: {kb_end - kb_start:.2f} seconds")
         

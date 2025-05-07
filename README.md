@@ -1,18 +1,23 @@
 # 🧠 Multi-Source Knowledge Base Builder for LLMs
 
-Python package to transform diverse content into a powerful, structured knowledge base. This tool seamlessly ingests **files** (PDFs, DOCXs, spreadsheets, Markdown, plaintext), **websites** (HTML pages, sitemaps, XML content), and **GitHub repositories**, processes them with state-of-the-art **large language models** (Gemini, GPT-4o, Claude), and produces a comprehensive **Markdown knowledge base**. Perfect for creating web-crawlable `/llms.txt` files, powering **RAG applications**, preprocessing content for **vector databases**, or building specialized chatbots. The algorithm uses a logarithmic-depth parallel merge tree with a concurrency-limited semaphore to efficiently process and merge all documents.
+A robust Python package designed to transform diverse content sources into a structured and comprehensive Markdown knowledge base optimized for large language models (LLMs). Efficiently ingest web content (HTML pages, sitemaps, XML), documents (PDFs, DOCXs, spreadsheets, Markdown, plaintext), and GitHub repositories, then process and merge them seamlessly using LLMs.
 
----
+Built to power:
+- Web-crawlable context files (`/llms.txt`)
+- Retrieval-Augmented Generation (**RAG**) systems
+- Vector databases preprocessing
+- Custom chatbots and knowledge applications
 
 ## ✨ Features
 
-- 📄 **Document ingestion** – Downloads local or remote documents and extracts structured text.
-- 🌐 **Website ingestion** – Crawls pages from a sitemap or list of pages and extracts clean HTML content.
-- 📘 **GitHub integration**  – Fetches Markdown files from public repositories.
-- 🧠 **LLM-powered summarization** – Uses state-of-the-art models to convert raw data into readable, structured Markdown.
-- 🔁 **Recursive merging** – Combines multiple knowledge base sections into a single cohesive document.
-- 🔄 **Multiple model providers** – Choose between Google Gemini, OpenAI GPT-4o, or Anthropic Claude 3.7 Sonnet.
-- ⚡ **Performance** – Load files in parallel and make multiple asynchronous calls to LLMs to summarize documents.
+- 📥 **Unified Source Ingestion** – Seamlessly handle local and remote files, websites, and GitHub repositories.
+- 🧹 **Structured Text Extraction** – Cleanly convert various document formats into Markdown.
+- 🌐 **Website Crawling** – Extract and summarize content from HTML pages and sitemaps.
+- 📚 **GitHub Integration** – Automatically retrieve and process Markdown content from repositories.
+- 🤖 **Advanced LLM Summarization** – Employ leading-edge models (Gemini Flash 2.0, GPT-4o, Claude 3.7 Sonnet) for precise and readable summaries.
+- 🔗 **Efficient Document Merging** – Merge multiple knowledge bases using a parallel preprocessing step followed by a single optimized merging step.
+- ⚙️ **Concurrency Control** – Smart throttling with semaphore-based concurrency ensures optimal use of resources and stable API usage.
+- 🚀 **Performance** – Optimized algorithm significantly reduces processing time, ensures predictable memory usage, and minimizes API calls.
 
 ---
 

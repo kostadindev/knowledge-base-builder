@@ -66,7 +66,7 @@ from knowledge_base_builder import KBBuilder
 # Load environment variables
 load_dotenv()
 
-# API and model configuration
+# API and model configuration | You need only one of the below
 config = {
     'GOOGLE_API_KEY': os.getenv("GOOGLE_API_KEY"),     # For Gemini | Get Free API Key at https://aistudio.google.com/app/apikey
     'OPENAI_API_KEY': os.getenv("OPENAI_API_KEY"),     # For GPT-4o
@@ -213,7 +213,6 @@ This approach provides several advantages:
 - Fewer total LLM calls (one per document + one final merge)
 - Better parallelization of preprocessing
 - More predictable memory usage
-- Simpler and more maintainable code
 - Faster overall processing time
 
 ---
@@ -288,7 +287,6 @@ final_kb = await merge_all_kbs(preprocessed_kbs)
 - **I/O Operations**: Each file requires multiple I/O operations:
   - Downloading/reading the file
   - Text extraction
-  - LLM API calls
 - **LLM Latency**: Each document requires at least one LLM call:
   - One call per document for preprocessing
   - One final call for merging

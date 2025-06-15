@@ -62,13 +62,13 @@ class KBBuilder:
         self.web_content_processor = WebContentProcessor()
         self.website_processor = WebsiteProcessor()
         self.github_processor = None
-        self.kbs: List[str] = []
+        self.text_contents: List[str] = []  # Changed from kbs to text_contents
 
     def build(self, sources: Dict[str, Any] = None, output_file: str = "final_knowledge_base.md") -> str:
         """Synchronously run the pipeline up to merge, then dispatch async merge."""
         total_start_time = time.time()
         print("🚀 Starting Knowledge Base Builder pipeline...")
-        self.kbs = []
+        self.text_contents = []
         sources = sources or {}
 
         # process all your legacy or unified sources exactly as before...
@@ -107,18 +107,57 @@ class KBBuilder:
             github_end_time = time.time()
             print(f"⏱️ GitHub repositories processing completed in {github_end_time - github_start_time:.2f} seconds")
 
-        # now do async merge & write file
-        print("🔀 Merging all knowledge bases asynchronously...")
-        merge_start_time = time.time()
-        final_kb = asyncio.get_event_loop().run_until_complete(
-            self.llm.process_documents(self.kbs)
-        )
-        merge_end_time = time.time()
-        print(f"⏱️ Knowledge base merging completed in {merge_end_time - merge_start_time:.2f} seconds")
+        # Process all collected content through LLM once
+        if not self.text_contents:
+            print("⚠️ No content collected.")
+            return output_file
+
+        print("🔀 Processing all collected content through LLM...")
+        llm_start_time = time.time()
+        
+        # Concatenate all text content with clear separators
+        combined_text = "\n\n---\n\n".join(self.text_contents)
+        
+        # Split text into chunks of approximately 20K tokens (leaving room for output)
+        # Assuming average of 4 characters per token for safety
+        chunk_size = 20000 * 4  # characters
+        chunks = [combined_text[i:i + chunk_size] for i in range(0, len(combined_text), chunk_size)]
+        
+        print(f"📚 Processing {len(chunks)} chunks of text...")
+        processed_chunks = []
+        
+        for i, chunk in enumerate(chunks, 1):
+            print(f"  Processing chunk {i}/{len(chunks)}...")
+            try:
+                processed_chunk = asyncio.get_event_loop().run_until_complete(
+                    self.llm.preprocess_text_async(chunk)
+                )
+                processed_chunks.append(processed_chunk)
+            except Exception as e:
+                print(f"❌ Error processing chunk {i}: {e}")
+                # If a chunk fails, try to process it in smaller pieces
+                sub_chunks = [chunk[i:i + chunk_size//2] for i in range(0, len(chunk), chunk_size//2)]
+                for j, sub_chunk in enumerate(sub_chunks, 1):
+                    try:
+                        processed_sub_chunk = asyncio.get_event_loop().run_until_complete(
+                            self.llm.preprocess_text_async(sub_chunk)
+                        )
+                        processed_chunks.append(processed_sub_chunk)
+                    except Exception as e:
+                        print(f"❌ Error processing sub-chunk {j} of chunk {i}: {e}")
+        
+        # Combine all processed chunks
+        processed_content = "\n\n".join(processed_chunks)
+        
+        llm_end_time = time.time()
+        print(f"⏱️ LLM processing completed in {llm_end_time - llm_start_time:.2f} seconds")
+
+        # Store the processed content
+        self.text_contents = [processed_content]
 
         write_start_time = time.time()
         with open(output_file, "w", encoding="utf-8") as f:
-            f.write(final_kb)
+            f.write(processed_content)
         write_end_time = time.time()
         print(f"⏱️ File writing completed in {write_end_time - write_start_time:.2f} seconds")
 
@@ -208,122 +247,127 @@ class KBBuilder:
         
         # Wait for all tasks to complete
         if tasks:
-            await asyncio.gather(*tasks)
+            try:
+                await asyncio.gather(*tasks)
+            except Exception as e:
+                print(f"❌ Error during async processing: {e}")
+                # Continue with other files even if one fails
+                pass
 
     async def _process_pdf_async(self, url: str) -> None:
         """Process a PDF file asynchronously."""
-        print(f"📄 PDF: {url}")
-        start_time = time.time()
-        
-        download_start = time.time()
-        path = await asyncio.to_thread(self.pdf_processor.download, url)
-        download_end = time.time()
-        print(f"  ⏱️ Download: {download_end - download_start:.2f} seconds")
-        
-        extract_start = time.time()
-        text = await asyncio.to_thread(self.pdf_processor.extract_text, path)
-        extract_end = time.time()
-        print(f"  ⏱️ Text extraction: {extract_end - extract_start:.2f} seconds")
-        
-        if text.strip():
-            kb_start = time.time()
-            self.kbs.append(await self.llm.preprocess_text_async(text))
-            kb_end = time.time()
-            print(f"  ⏱️ KB building: {kb_end - kb_start:.2f} seconds")
-        
-        end_time = time.time()
-        print(f"  ⏱️ Total PDF processing: {end_time - start_time:.2f} seconds")
+        try:
+            print(f"📄 PDF: {url}")
+            start_time = time.time()
+            
+            download_start = time.time()
+            path = await asyncio.to_thread(self.pdf_processor.download, url)
+            download_end = time.time()
+            print(f"  ⏱️ Download: {download_end - download_start:.2f} seconds")
+            
+            extract_start = time.time()
+            text = await asyncio.to_thread(self.pdf_processor.extract_text, path)
+            extract_end = time.time()
+            print(f"  ⏱️ Text extraction: {extract_end - extract_start:.2f} seconds")
+            
+            if text.strip():
+                self.text_contents.append(text)
+            
+            end_time = time.time()
+            print(f"  ⏱️ Total PDF processing: {end_time - start_time:.2f} seconds")
+        except Exception as e:
+            print(f"❌ Error processing PDF {url}: {e}")
 
     async def _process_document_async(self, url: str) -> None:
         """Process a document file asynchronously."""
-        print(f"📝 Document: {url}")
-        start_time = time.time()
-        
-        download_start = time.time()
-        path = await asyncio.to_thread(self.document_processor.download, url)
-        download_end = time.time()
-        print(f"  ⏱️ Download: {download_end - download_start:.2f} seconds")
-        
-        extract_start = time.time()
-        text = await asyncio.to_thread(self.document_processor.extract_text, path)
-        extract_end = time.time()
-        print(f"  ⏱️ Text extraction: {extract_end - extract_start:.2f} seconds")
-        
-        if text.strip():
-            kb_start = time.time()
-            self.kbs.append(await self.llm.preprocess_text_async(text))
-            kb_end = time.time()
-            print(f"  ⏱️ KB building: {kb_end - kb_start:.2f} seconds")
-        
-        end_time = time.time()
-        print(f"  ⏱️ Total document processing: {end_time - start_time:.2f} seconds")
+        try:
+            print(f"📝 Document: {url}")
+            start_time = time.time()
+            
+            download_start = time.time()
+            path = await asyncio.to_thread(self.document_processor.download, url)
+            download_end = time.time()
+            print(f"  ⏱️ Download: {download_end - download_start:.2f} seconds")
+            
+            extract_start = time.time()
+            text = await asyncio.to_thread(self.document_processor.extract_text, path)
+            extract_end = time.time()
+            print(f"  ⏱️ Text extraction: {extract_end - extract_start:.2f} seconds")
+            
+            if text.strip():
+                self.text_contents.append(text)
+            
+            end_time = time.time()
+            print(f"  ⏱️ Total document processing: {end_time - start_time:.2f} seconds")
+        except Exception as e:
+            print(f"❌ Error processing document {url}: {e}")
 
     async def _process_spreadsheet_async(self, url: str) -> None:
         """Process a spreadsheet file asynchronously."""
-        print(f"📊 Spreadsheet: {url}")
-        start_time = time.time()
-        
-        download_start = time.time()
-        path = await asyncio.to_thread(self.spreadsheet_processor.download, url)
-        download_end = time.time()
-        print(f"  ⏱️ Download: {download_end - download_start:.2f} seconds")
-        
-        extract_start = time.time()
-        text = await asyncio.to_thread(self.spreadsheet_processor.extract_text, path)
-        extract_end = time.time()
-        print(f"  ⏱️ Text extraction: {extract_end - extract_start:.2f} seconds")
-        
-        if text.strip():
-            kb_start = time.time()
-            self.kbs.append(await self.llm.preprocess_text_async(text))
-            kb_end = time.time()
-            print(f"  ⏱️ KB building: {kb_end - kb_start:.2f} seconds")
-        
-        end_time = time.time()
-        print(f"  ⏱️ Total spreadsheet processing: {end_time - start_time:.2f} seconds")
+        try:
+            print(f"📊 Spreadsheet: {url}")
+            start_time = time.time()
+            
+            download_start = time.time()
+            path = await asyncio.to_thread(self.spreadsheet_processor.download, url)
+            download_end = time.time()
+            print(f"  ⏱️ Download: {download_end - download_start:.2f} seconds")
+            
+            extract_start = time.time()
+            text = await asyncio.to_thread(self.spreadsheet_processor.extract_text, path)
+            extract_end = time.time()
+            print(f"  ⏱️ Text extraction: {extract_end - extract_start:.2f} seconds")
+            
+            if text.strip():
+                self.text_contents.append(text)
+            
+            end_time = time.time()
+            print(f"  ⏱️ Total spreadsheet processing: {end_time - start_time:.2f} seconds")
+        except Exception as e:
+            print(f"❌ Error processing spreadsheet {url}: {e}")
 
     async def _process_web_content_async(self, url: str) -> None:
         """Process a web content file asynchronously."""
-        print(f"🌐 Web content: {url}")
-        start_time = time.time()
-        
-        download_start = time.time()
-        path = await asyncio.to_thread(self.web_content_processor.download, url)
-        download_end = time.time()
-        print(f"  ⏱️ Download: {download_end - download_start:.2f} seconds")
-        
-        extract_start = time.time()
-        text = await asyncio.to_thread(self.web_content_processor.extract_text, path)
-        extract_end = time.time()
-        print(f"  ⏱️ Text extraction: {extract_end - extract_start:.2f} seconds")
-        
-        if text.strip():
-            kb_start = time.time()
-            self.kbs.append(await self.llm.preprocess_text_async(text))
-            kb_end = time.time()
-            print(f"  ⏱️ KB building: {kb_end - kb_start:.2f} seconds")
-        
-        end_time = time.time()
-        print(f"  ⏱️ Total web content processing: {end_time - start_time:.2f} seconds")
+        try:
+            print(f"🌐 Web content: {url}")
+            start_time = time.time()
+            
+            download_start = time.time()
+            path = await asyncio.to_thread(self.web_content_processor.download, url)
+            download_end = time.time()
+            print(f"  ⏱️ Download: {download_end - download_start:.2f} seconds")
+            
+            extract_start = time.time()
+            text = await asyncio.to_thread(self.web_content_processor.extract_text, path)
+            extract_end = time.time()
+            print(f"  ⏱️ Text extraction: {extract_end - extract_start:.2f} seconds")
+            
+            if text.strip():
+                self.text_contents.append(text)
+            
+            end_time = time.time()
+            print(f"  ⏱️ Total web content processing: {end_time - start_time:.2f} seconds")
+        except Exception as e:
+            print(f"❌ Error processing web content {url}: {e}")
 
     async def _process_web_url_async(self, url: str) -> None:
         """Process a web URL asynchronously."""
-        print(f"🔗 Website: {url}")
-        start_time = time.time()
-        
-        download_start = time.time()
-        text = await asyncio.to_thread(self.website_processor.download_and_clean_html, url)
-        download_end = time.time()
-        print(f"  ⏱️ Download and clean: {download_end - download_start:.2f} seconds")
-        
-        if text.strip():
-            kb_start = time.time()
-            self.kbs.append(await self.llm.preprocess_text_async(text))
-            kb_end = time.time()
-            print(f"  ⏱️ KB building: {kb_end - kb_start:.2f} seconds")
-        
-        end_time = time.time()
-        print(f"  ⏱️ Total website processing: {end_time - start_time:.2f} seconds")
+        try:
+            print(f"🔗 Website: {url}")
+            start_time = time.time()
+            
+            download_start = time.time()
+            text = await asyncio.to_thread(self.website_processor.download_and_clean_html, url)
+            download_end = time.time()
+            print(f"  ⏱️ Download and clean: {download_end - download_start:.2f} seconds")
+            
+            if text.strip():
+                self.text_contents.append(text)
+            
+            end_time = time.time()
+            print(f"  ⏱️ Total website processing: {end_time - start_time:.2f} seconds")
+        except Exception as e:
+            print(f"❌ Error processing website {url}: {e}")
 
     def process_pdfs(self, pdf_urls: List[str]) -> None:
         """Process and build knowledge bases from PDFs."""
@@ -376,10 +420,7 @@ class KBBuilder:
         print(f"  ⏱️ Download and clean: {download_end - download_start:.2f} seconds")
         
         if text.strip():
-            kb_start = time.time()
-            self.kbs.append(self.llm.build(text))
-            kb_end = time.time()
-            print(f"  ⏱️ KB building: {kb_end - kb_start:.2f} seconds")
+            self.text_contents.append(text)  # Changed from kbs.append(self.llm.build(text))
         
         end_time = time.time()
         print(f"  ⏱️ Total website processing: {end_time - start_time:.2f} seconds")
@@ -472,10 +513,7 @@ class KBBuilder:
                             print(f"    ⏱️ Markdown download: {download_end - download_start:.2f} seconds")
                             
                             if text.strip():
-                                kb_start = time.time()
-                                self.kbs.append(self.llm.build(text))
-                                kb_end = time.time()
-                                print(f"    ⏱️ KB building: {kb_end - kb_start:.2f} seconds")
+                                self.text_contents.append(text)  # Changed from kbs.append(self.llm.build(text))
                             
                             url_end = time.time()
                             print(f"    ⏱️ Total markdown processing: {url_end - url_start:.2f} seconds")
@@ -522,22 +560,14 @@ class KBBuilder:
             return []
 
     def build_final_kb(self, output_path: str = "final_knowledge_base.md") -> None:
-        """Build and save the final knowledge base."""
-        if not self.kbs:
-            print("⚠️ No knowledge bases created.")
+        """Write the final knowledge base to file."""
+        if not self.text_contents:
+            print("⚠️ No content collected.")
             return
-
-        print("🔀 Merging all knowledge bases...")
-        merge_start = time.time()
-        final_kb = asyncio.get_event_loop().run_until_complete(
-            self.llm.process_documents(self.kbs)
-        )
-        merge_end = time.time()
-        print(f"⏱️ Merging completed in {merge_end - merge_start:.2f} seconds")
 
         write_start = time.time()
         with open(output_path, "w", encoding="utf-8") as f:
-            f.write(final_kb)
+            f.write(self.text_contents[0])  # Write the processed content
         write_end = time.time()
         print(f"⏱️ File writing completed in {write_end - write_start:.2f} seconds")
 

@@ -220,6 +220,9 @@ The knowledge base builder uses a two-step approach for efficient processing:
    - Reduces total LLM calls compared to recursive approaches
    - More predictable memory usage
 
+![image](https://github.com/user-attachments/assets/e4d98bae-dfdd-411c-b931-0c2cec3e113f)
+
+
 This approach provides several advantages:
 - Fewer total LLM calls (one per document + one final merge)
 - Better parallelization of preprocessing

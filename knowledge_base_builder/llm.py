@@ -17,7 +17,7 @@ class LLM:
         prompt = (
             "You're a knowledge base builder.\n\n"
             "Turn the following document into a structured **Markdown knowledge base** "
-            "with summaries, bullet points, and clearly formatted sections.\n\n"
+            "with summaries, bullet points, and clearly formatted sections. Do not lose important information.\n\n"
             f"---DOCUMENT START---\n{text}\n---DOCUMENT END---\n\n"
             "Return only the Markdown."
         )
@@ -33,7 +33,7 @@ class LLM:
         prompt = (
             "You're a knowledge base builder.\n\n"
             "Turn the following document into a structured **Markdown knowledge base** "
-            "with summaries, bullet points, and clearly formatted sections.\n\n"
+            "with summaries, bullet points, and clearly formatted sections. Do not lose important information.\n\n"
             f"---DOCUMENT START---\n{text}\n---DOCUMENT END---\n\n"
             "Return only the Markdown."
         )
@@ -50,7 +50,7 @@ class LLM:
             
         start_time = time.time()
         prompt = (
-            "Merge the following knowledge bases into one logically structured Markdown document.\n\n" +
+            "Merge the following knowledge bases into one logically structured Markdown document. Do not lose any information.\n\n" +
             "\n\n".join(f"---KB{i+1}---\n{kb}" for i, kb in enumerate(kbs)) +
             "\n\nReturn only the final Markdown."
         )

@@ -226,7 +226,8 @@ The knowledge base builder uses a streamlined three-step approach for efficient 
    - Only one LLM call for the entire process
    - Optimized for context window usage
 
-![image](https://github.com/user-attachments/assets/e4d98bae-dfdd-411c-b931-0c2cec3e113f)
+![image](https://github.com/user-attachments/assets/4ea6dbcd-7566-4e2f-aafa-07a22b3d1196)
+
 
 This approach provides several advantages:
 - Minimal LLM calls (just one for the entire process)

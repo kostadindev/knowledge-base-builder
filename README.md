@@ -206,28 +206,34 @@ sources = {
 ---
 ## 🌲 Algorithm
 
-The knowledge base builder uses a two-step approach for efficient processing:
+The knowledge base builder uses a streamlined three-step approach for efficient processing:
 
-1. **Parallel Preprocessing**
-   - All documents are preprocessed concurrently into structured KBs
-   - Uses a semaphore to limit concurrent LLM requests
-   - Each document is converted into a well-formatted Markdown knowledge base
+1. **Text Extraction**
+   - All documents are processed concurrently into plain text files
+   - Uses a semaphore to limit concurrent processing
+   - Each document is converted into a clean text format
    - Optimized for parallel processing with controlled concurrency
 
-2. **Single Merge**
-   - All preprocessed KBs are merged in a single operation
-   - Maintains logical structure and organization
-   - Reduces total LLM calls compared to recursive approaches
-   - More predictable memory usage
+2. **Text Merging**
+   - All extracted text files are merged into a single text file
+   - Maintains document separation and structure
+   - No LLM calls during this phase
+   - Very efficient memory usage
+
+3. **LLM Processing**
+   - The merged text file is processed by the LLM in a single operation
+   - LLM creates a well-structured, organized knowledge base
+   - Only one LLM call for the entire process
+   - Optimized for context window usage
 
 ![image](https://github.com/user-attachments/assets/e4d98bae-dfdd-411c-b931-0c2cec3e113f)
 
-
 This approach provides several advantages:
-- Fewer total LLM calls (one per document + one final merge)
-- Better parallelization of preprocessing
+- Minimal LLM calls (just one for the entire process)
+- Better parallelization of text extraction
 - More predictable memory usage
-- Faster overall processing time
+- Significantly faster overall processing time
+- Lower API costs due to reduced LLM usage
 
 ---
 
